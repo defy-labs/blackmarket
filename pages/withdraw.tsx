@@ -1,6 +1,6 @@
 import {
-    Heading,
-    Stack,
+  Heading,
+  Stack,
 } from '@chakra-ui/react'
 import Withdraw from 'components/Withdraw/Withdraw'
 import { NextPage } from 'next'
@@ -10,18 +10,18 @@ import useEagerConnect from '../hooks/useEagerConnect'
 import SmallLayout from '../layouts/small'
 
 const WithdrawalPage: NextPage = () => {
-    useEagerConnect()
-    const { t } = useTranslation('templates')
+  useEagerConnect()
+  const { t } = useTranslation('templates')
 
-    return (
-        <SmallLayout>
-            <Head title="Withdrawal" />
-            <Stack spacing={8}>
-                <Heading variant="title">{t('withdraw.title')}</Heading>
-                <Withdraw />
-            </Stack>
-        </SmallLayout>
-    )
+  return (
+    <SmallLayout>
+      <Head title="Withdrawal" />
+      <Stack spacing={8}>
+        <Heading variant="title">{t('withdraw.title')}</Heading>
+        <Withdraw />
+      </Stack>
+    </SmallLayout>
+  )
 }
 
 export default WithdrawalPage

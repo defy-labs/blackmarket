@@ -39,6 +39,7 @@ import { useWeb3React } from '@web3-react/core'
 import { InjectedConnector } from '@web3-react/injected-connector'
 import { WalletConnectConnector } from '@web3-react/walletconnect-connector'
 import { WalletLinkConnector } from '@web3-react/walletlink-connector'
+import WithdrawModal from 'components/Modal/Withdraw'
 import useTranslation from 'next-translate/useTranslation'
 import { MittEmitter } from 'next/dist/shared/lib/mitt'
 import Image from 'next/image'
@@ -411,7 +412,10 @@ const Navbar: VFC<{
   signer,
 }) => {
   const { t } = useTranslation('components')
-  const { isOpen, onOpen, onClose } = useDisclosure()
+
+  const loginDisclosure = useDisclosure()
+  const withdrawDisclosure = useDisclosure()
+
   const { account: accountWithChecksum, deactivate } = useWeb3React()
   const account = accountWithChecksum?.toLowerCase()
   const { asPath, query, push, isReady } = router
@@ -498,17 +502,11 @@ const Navbar: VFC<{
             <>
               <ActivityMenu account={account} />
 
-              <Flex
-                as={Link}
-                href="/withdraw"
-                color="brand.black"
-                align="center"
-                _hover={{ color: 'gray.500' }}
-              >
-                <Text as="span" variant="button2">
+              <Button onClick={withdrawDisclosure.onOpen}>
+                <Text as="span" isTruncated>
                   {t('navbar.withdraw')}
                 </Text>
-              </Flex>
+              </Button>
 
               <Link href="/notification">
                 <IconButton
@@ -544,7 +542,7 @@ const Navbar: VFC<{
               />
             </>
           ) : (
-            <Button onClick={onOpen}>
+            <Button onClick={loginDisclosure.onOpen}>
               <Text as="span" isTruncated>
                 {t('navbar.sign-in')}
               </Text>
@@ -577,7 +575,17 @@ const Navbar: VFC<{
           />
         </Flex>
       </Flex>
-      <LoginModal isOpen={isOpen} onClose={onClose} {...login} />
+
+      <LoginModal
+        isOpen={loginDisclosure.isOpen}
+        onClose={loginDisclosure.onClose}
+        {...login}
+      />
+
+      <WithdrawModal
+        isOpen={withdrawDisclosure.isOpen}
+        onClose={withdrawDisclosure.onClose}
+      />
     </>
   )
 }

@@ -131,7 +131,6 @@ function Layout({
       { href: userProfileLink, label: texts[locale].profile },
       { href: 'mailto:support@defylabs.xyz', label: texts[locale].support },
       { href: 'https://defydisrupt.io/', label: texts[locale].about },
-      { href: '/withdraw', label: texts[locale].withdraw },
       { href: 'https://bridge.defydisrupt.io/', label: texts[locale].bridge },
       { href: 'https://defydisrupt.io/terms/', label: texts[locale].terms },
       { href: 'https://defydisrupt.io/privacy/', label: texts[locale].privacy },

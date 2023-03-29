@@ -448,13 +448,13 @@ const Navbar: VFC<{
   )
 
   const handleOnCloseWelcome = useCallback(() => {
-    onCloseWelcome()
+    welcomeDisclosure.onClose()
     setHasViewedWelcome(true)
 
     if (typeof window !== 'undefined') {
       localStorage.setItem(WELCOME_MODAL_STORAGE_KEY, 'true')
     }
-  }, [onCloseWelcome])
+  }, [welcomeDisclosure])
 
   const onSubmit = handleSubmit((data) => {
     if (data.search) query.search = data.search
@@ -480,9 +480,9 @@ const Navbar: VFC<{
   // Handle welcome screen state
   useEffect(() => {
     if (hasViewedWelcome === false) {
-      onOpenWelcome()
+      welcomeDisclosure.onOpen()
     }
-  }, [hasViewedWelcome, onOpenWelcome])
+  }, [hasViewedWelcome, welcomeDisclosure])
 
   return (
     <>

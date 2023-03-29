@@ -69,7 +69,7 @@ const WithdrawModal: FC<Props> = ({ isOpen, onClose }) => {
   const { account } = useWeb3React()
   // TODO: Get username for current user
 
-  const [currentDefyBalance, setCurrentDefyBalance] = useState(1000)
+  const [currentDefyBalance, setCurrentDefyBalance] = useState(0)
   const [isTransferring, setIsTransferring] = useState(false)
   const [withdrawTransferDisabled, setWithdrawTransferDisabled] =
     useState(false)
@@ -128,7 +128,10 @@ const WithdrawModal: FC<Props> = ({ isOpen, onClose }) => {
     if (account) {
       updateUserCurrentDefy(account)
         .then((result) => setCurrentDefyBalance(result.data.amount))
-        .catch((error) => console.log(error))
+        .catch((error) => {
+          console.log(error)
+          setCurrentDefyBalance(0)
+        })
     }
   }, [account])
 

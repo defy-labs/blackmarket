@@ -814,5 +814,9 @@
     "after": "转移后你的游戏余额将是 ",
     "transferInvalidMessage": "转账金额必须大于0",
     "transferInvalidExceeded": "您沒有足夠的 DEFY 進行此次轉移"
+  },
+  "welcomeModal": {
+    "title": "Welcome to the DEFY Black Market.",
+    "description": "This is a peer to peer trading platform allowing DEFY operatives to buy and sell materials, equipment and tools that enhance your game play in DEFY.\n\nMost in game items are user collected via the map or generated via the nanoforge. Get out, explore and find those materials. There's something super rare somewhere around you right now…\n\nHere, you’ll find everything you need to take your gameplay to the next level and a market to sell your excess items to other operatives. The revolution depends us working together.\n\nGood Hunting Operatives!"
   }
 }

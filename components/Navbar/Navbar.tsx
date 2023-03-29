@@ -39,11 +39,20 @@ import { useWeb3React } from '@web3-react/core'
 import { InjectedConnector } from '@web3-react/injected-connector'
 import { WalletConnectConnector } from '@web3-react/walletconnect-connector'
 import { WalletLinkConnector } from '@web3-react/walletlink-connector'
+import WelcomeModal from 'components/Modal/Welcome'
 import WithdrawModal from 'components/Modal/Withdraw'
 import useTranslation from 'next-translate/useTranslation'
 import { MittEmitter } from 'next/dist/shared/lib/mitt'
 import Image from 'next/image'
-import { FC, HTMLAttributes, useEffect, useRef, VFC } from 'react'
+import {
+  FC,
+  HTMLAttributes,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  VFC,
+} from 'react'
 import { useCookies } from 'react-cookie'
 import { useForm } from 'react-hook-form'
 import { useNavbarAccountQuery } from '../../graphql'
@@ -374,6 +383,8 @@ const UserMenu: VFC<{
   )
 }
 
+const WELCOME_MODAL_STORAGE_KEY = 'DEFYWelcomeModalViewed'
+
 type FormData = {
   search: string
 }
@@ -415,6 +426,7 @@ const Navbar: VFC<{
 
   const loginDisclosure = useDisclosure()
   const withdrawDisclosure = useDisclosure()
+  const welcomeDisclosure = useDisclosure()
 
   const { account: accountWithChecksum, deactivate } = useWeb3React()
   const account = accountWithChecksum?.toLowerCase()
@@ -431,6 +443,26 @@ const Navbar: VFC<{
     skip: !account,
   })
 
+  const [hasViewedWelcome, setHasViewedWelcome] = useState(
+    localStorage.getItem(WELCOME_MODAL_STORAGE_KEY) === 'true',
+  )
+
+  const handleOnCloseWelcome = useCallback(() => {
+    onCloseWelcome()
+    setHasViewedWelcome(true)
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(WELCOME_MODAL_STORAGE_KEY, 'true')
+    }
+  }, [onCloseWelcome])
+
+  const onSubmit = handleSubmit((data) => {
+    if (data.search) query.search = data.search
+    else delete query.search
+    delete query.skip // reset pagination
+    return push({ pathname: '/explore', query })
+  })
+
   useEffect(() => {
     if (!isReady) return
     if (!query.search) return setValue('search', '')
@@ -445,12 +477,12 @@ const Navbar: VFC<{
     }
   }, [router.events, refetch])
 
-  const onSubmit = handleSubmit((data) => {
-    if (data.search) query.search = data.search
-    else delete query.search
-    delete query.skip // reset pagination
-    return push({ pathname: '/explore', query })
-  })
+  // Handle welcome screen state
+  useEffect(() => {
+    if (hasViewedWelcome === false) {
+      onOpenWelcome()
+    }
+  }, [hasViewedWelcome, onOpenWelcome])
 
   return (
     <>
@@ -585,6 +617,11 @@ const Navbar: VFC<{
       <WithdrawModal
         isOpen={withdrawDisclosure.isOpen}
         onClose={withdrawDisclosure.onClose}
+      />
+
+      <WelcomeModal
+        isOpen={welcomeDisclosure.isOpen}
+        onClose={handleOnCloseWelcome}
       />
     </>
   )

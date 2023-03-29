@@ -235,7 +235,11 @@ const WithdrawModal: FC<Props> = ({ isOpen, onClose }) => {
                   </Text>
                 </FormLabel>
 
-                <NumberInput isDisabled value={transferAmount} w="full">
+                <NumberInput
+                  isDisabled
+                  value={transferAmount > 0 ? transferAmount : 0}
+                  w="full"
+                >
                   <InputLeftElement ml={2}>
                     <Box position="relative" width="32px" height="32px">
                       <Image

@@ -224,9 +224,6 @@
       }
     }
   },
-  "withdraw": {
-    "title": "撤退 DEFY"
-  },
   "user": {
     "auctions": {
       "nav": {

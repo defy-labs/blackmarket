@@ -805,10 +805,14 @@
     }
   },
   "withdraw": {
-    "balance": "of total in-game balance",
+    "title": "Withdraw DEFY",
+    "balance": "Balance",
     "from": "From",
     "to": "To",
     "transfer": "Transfer",
-    "after": "After transfer your in game balance will be "
+    "transferring": "Transferring",
+    "after": "Will remain",
+    "transferInvalidMessage": "Transfer amount must be greater than 0",
+    "transferInvalidExceeded": "You do not have enough DEFY for this transfer"
   }
 }

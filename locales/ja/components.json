@@ -805,10 +805,14 @@
     }
   },
   "withdraw": {
+    "title": "撤退 DEFY",
     "balance": "ゲーム内残高の合計",
     "from": "から",
     "to": "に",
     "transfer": "移行",
-    "after": "移行後のゲーム内残高は "
+    "transferring": "転送中",
+    "after": "移行後のゲーム内残高は ",
+    "transferInvalidMessage": "送金金額は 0 より大きくなければなりません",
+    "transferInvalidExceeded": "この転送に十分な DEFY がありません"
   }
 }

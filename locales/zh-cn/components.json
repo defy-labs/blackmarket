@@ -805,10 +805,14 @@
     }
   },
   "withdraw": {
+    "title": "退出 DEFY",
     "balance": "游戏内总余额",
     "from": "从",
     "to": "到",
     "transfer": "转移",
-    "after": "转移后你的游戏余额将是 "
+    "transferring": "轉移",
+    "after": "转移后你的游戏余额将是 ",
+    "transferInvalidMessage": "转账金额必须大于0",
+    "transferInvalidExceeded": "您沒有足夠的 DEFY 進行此次轉移"
   }
 }

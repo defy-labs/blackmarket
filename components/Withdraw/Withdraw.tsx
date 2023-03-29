@@ -8,22 +8,23 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react'
-import { useEffect, useState } from "react";
-import axios from "axios"
 import { useWeb3React } from '@web3-react/core'
+import axios from 'axios'
+import useTranslation from 'next-translate/useTranslation'
+import { useEffect, useState } from 'react'
 import environment from '../../environment'
 import useSigner from '../../hooks/useSigner'
-import useTranslation from 'next-translate/useTranslation'
 
 function Withdraw() {
   const { t } = useTranslation('components')
-  const signer = useSigner();
+  const signer = useSigner()
 
   // current account address
   const { account } = useWeb3React()
 
   const [transferAmount, setTransferAmount] = useState<number>(1)
-  const [withdrawTransferDisabled, setWithdrawTransferDisabled] = useState<boolean>(false)
+  const [withdrawTransferDisabled, setWithdrawTransferDisabled] =
+    useState<boolean>(false)
 
   const [currentDefyBalance, setCurrentDefyBalance] = useState<number>(0)
 
@@ -35,12 +36,12 @@ function Withdraw() {
     try {
       const result = await axios.get(url, {
         params: {
-          connectedAddress: account
-        }
+          connectedAddress: account,
+        },
       })
       setCurrentDefyBalance(await result.data.amount)
     } catch (e) {
-      return "[error processing]"
+      return '[error processing]'
     }
   }
 
@@ -49,7 +50,7 @@ function Withdraw() {
       const total = currentDefyBalance - transferAmount
       return total.toFixed(2)
     } catch (err) {
-      return "[error processing]"
+      return '[error processing]'
     }
   }
 
@@ -64,48 +65,42 @@ function Withdraw() {
   const withdrawToChain = async () => {
     if (transferAmount != 0) {
       // operative to sign message
-      var message = `DEFY Withdrawal Request\nWallet Address: ${account}\nTokens: ${transferAmount}`;
+      const message = `DEFY Withdrawal Request\nWallet Address: ${account}\nTokens: ${transferAmount}`
 
       try {
         setIsTransferring(true)
-        var signedMessageHash = await signer?.signMessage(message)
+        const signedMessageHash = await signer?.signMessage(message)
 
         // build webApi endpoint url
         const url = `${environment.DEFY_API_BASE_URL}/TokenBridge/withdrawTokens`
         const result = await axios.post(url, {
           WalletAddress: account,
           Message: message,
-          Signature: signedMessageHash
+          Signature: signedMessageHash,
         })
         console.log(result)
         setIsTransferring(false)
       } catch (err) {
         setIsTransferring(false)
-        return "[error processing]"
+        return '[error processing]'
       }
     }
   }
 
   useEffect(() => {
-    if (account) { updateUserCurrentDefy() }
+    if (account) {
+      updateUserCurrentDefy()
+    }
 
     // TODO: add in after withdraw
   }, [account])
 
   return account ? (
-    <Stack
-      align="flex-start"
-      spacing={12}
-      flex="1 1 0%"
-    >
-      {(
+    <Stack align="flex-start" spacing={12} flex="1 1 0%">
+      {
         <>
-          <Text>
-            {t('withdraw.from') + " @" + account}
-          </Text>
-
+          <Text>{t('withdraw.from') + ' @' + account}</Text>
           {/**<img src={defyIcon} className="w-5 h-5" alt="" /> */}
-
           <NumberInput
             clampValueOnBlur={false}
             value={transferAmount}
@@ -114,11 +109,12 @@ function Withdraw() {
             step={10}
             w="full"
             onChange={(e) => {
-              if (e) { // only call setTransferAmount if e is not empty or undefined
+              if (e) {
+                // only call setTransferAmount if e is not empty or undefined
                 try {
-                  setTransferAmount(parseFloat(e));
+                  setTransferAmount(parseFloat(e))
                 } catch (error) {
-                  console.error(error);
+                  console.error(error)
                   // handle the error here (e.g. show an error message to the user)
                 }
               }
@@ -129,15 +125,15 @@ function Withdraw() {
               <NumberIncrementStepper />
               <NumberDecrementStepper />
             </NumberInputStepper>
-          </NumberInput>
-
-          {" "}
+          </NumberInput>{' '}
           <Text>
-            {t('withdraw.balance')}{" "}
-            {typeof currentDefyBalance === 'number' ? currentDefyBalance.toString() : 'N/A'}
+            {t('withdraw.balance')}{' '}
+            {typeof currentDefyBalance === 'number'
+              ? currentDefyBalance.toString()
+              : 'N/A'}
           </Text>
           <Button
-            variant='outline'
+            variant="outline"
             onClick={async () => {
               setTransferAmount(currentDefyBalance || 0)
               if (currentDefyBalance) {
@@ -147,20 +143,20 @@ function Withdraw() {
           >
             Max
           </Button>
-
           <Text as="span" isTruncated>
-            {t('withdraw.to')}{" "}{account}
+            {t('withdraw.to')} {account}
           </Text>
-
           <Text>
-            {transferAmount && !withdrawTransferDisabled &&
-              `${t('withdraw.after')} ${getTotalAmountAfterWithdrawFormatted()} DEFY`}
+            {transferAmount &&
+              !withdrawTransferDisabled &&
+              `${t(
+                'withdraw.after',
+              )} ${getTotalAmountAfterWithdrawFormatted()} DEFY`}
           </Text>
-
           {!withdrawTransferDisabled &&
-            (!isTransferring ?
+            (!isTransferring ? (
               <Button
-                variant='outline'
+                variant="outline"
                 onClick={async () => {
                   if (transferAmount) {
                     await withdrawToChain()
@@ -169,25 +165,18 @@ function Withdraw() {
               >
                 {t('withdraw.transfer')}
               </Button>
-              :
+            ) : (
               <Button
                 isLoading
-                loadingText='Transferring'
-                variant='outline'
-              >
-              </Button>
-            )
-          }
+                loadingText="Transferring"
+                variant="outline"
+              ></Button>
+            ))}
         </>
-      )}
+      }
     </Stack>
   ) : (
-    <Stack
-      align="flex-start"
-      spacing={12}
-      as="form"
-      flex="1 1 0%"
-    >
+    <Stack align="flex-start" spacing={12} as="form" flex="1 1 0%">
       loading...
     </Stack>
   )

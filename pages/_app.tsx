@@ -55,8 +55,8 @@ function web3Provider(provider: any): Web3Provider {
     typeof provider.chainId === 'number'
       ? provider.chainId
       : typeof provider.chainId === 'string'
-        ? parseInt(provider.chainId)
-        : 'any',
+      ? parseInt(provider.chainId)
+      : 'any',
   )
 }
 
@@ -290,8 +290,8 @@ function AccountProvider(
         uri: environment.GRAPHQL_URL,
         headers: cookies[COOKIE_JWT_TOKEN]
           ? {
-            authorization: 'Bearer ' + cookies[COOKIE_JWT_TOKEN],
-          }
+              authorization: 'Bearer ' + cookies[COOKIE_JWT_TOKEN],
+            }
           : {},
         cache: new InMemoryCache({
           typePolicies: {

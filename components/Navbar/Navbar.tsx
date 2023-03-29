@@ -121,180 +121,180 @@ const DrawerMenu: VFC<{
   topUp,
   disableMinting,
 }) => {
-    const { isOpen, onOpen, onClose } = useDisclosure()
-    const { asPath, events, query, push } = router
-    const { t } = useTranslation('components')
-    const btnRef = useRef(null)
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { asPath, events, query, push } = router
+  const { t } = useTranslation('components')
+  const btnRef = useRef(null)
 
-    useEffect(() => {
-      events.on('routeChangeStart', () => onClose())
-      return () => {
-        events.off('routeChangeStart', () => onClose())
-      }
-    }, [events, onClose])
+  useEffect(() => {
+    events.on('routeChangeStart', () => onClose())
+    return () => {
+      events.off('routeChangeStart', () => onClose())
+    }
+  }, [events, onClose])
 
-    return (
-      <>
-        <IconButton
-          ref={btnRef}
-          onClick={onOpen}
-          icon={<HiOutlineMenu color="gray" size={24} />}
-          aria-label="Open menu"
-          variant="ghost"
-          colorScheme="gray"
-        />
-        <Drawer
-          isOpen={isOpen}
-          onClose={onClose}
-          finalFocusRef={btnRef}
-          placement="left"
-        >
-          <DrawerOverlay />
-          <DrawerContent>
-            <DrawerCloseButton />
-            <DrawerHeader>
-              <Link href="/" onClick={onClose}>
-                <Image
-                  src={logo?.path || '/logo.svg'}
-                  alt="Logo"
-                  width={logo?.width || 139}
-                  height={logo?.height || 32}
-                />
+  return (
+    <>
+      <IconButton
+        ref={btnRef}
+        onClick={onOpen}
+        icon={<HiOutlineMenu color="gray" size={24} />}
+        aria-label="Open menu"
+        variant="ghost"
+        colorScheme="gray"
+      />
+      <Drawer
+        isOpen={isOpen}
+        onClose={onClose}
+        finalFocusRef={btnRef}
+        placement="left"
+      >
+        <DrawerOverlay />
+        <DrawerContent>
+          <DrawerCloseButton />
+          <DrawerHeader>
+            <Link href="/" onClick={onClose}>
+              <Image
+                src={logo?.path || '/logo.svg'}
+                alt="Logo"
+                width={logo?.width || 139}
+                height={logo?.height || 32}
+              />
+            </Link>
+          </DrawerHeader>
+          <DrawerBody px={0} mt={8}>
+            <Link href="/explore">
+              <NavItemMobile>{t('navbar.explore')}</NavItemMobile>
+            </Link>
+            {!disableMinting && (
+              <Link href="/create">
+                <NavItemMobile>{t('navbar.create')}</NavItemMobile>
               </Link>
-            </DrawerHeader>
-            <DrawerBody px={0} mt={8}>
-              <Link href="/explore">
-                <NavItemMobile>{t('navbar.explore')}</NavItemMobile>
-              </Link>
-              {!disableMinting && (
-                <Link href="/create">
-                  <NavItemMobile>{t('navbar.create')}</NavItemMobile>
-                </Link>
-              )}
-              {account ? (
-                <>
-                  <Accordion as="nav" allowMultiple>
-                    <AccordionItem border="none">
-                      <AccordionButton
-                        py={2}
-                        pr={4}
-                        pl={3}
-                        fontWeight="medium"
-                        borderColor="gray.200"
-                        borderLeftWidth="4px"
-                        color="gray.600"
-                        _hover={{
-                          color: 'gray.800',
-                          borderColor: 'brand.200',
-                          bgColor: 'brand.50',
-                        }}
-                      >
-                        <Text variant="subtitle1" textAlign="left" flex="1">
-                          {t('navbar.activity.title')}
-                        </Text>
-                        <AccordionIcon />
-                      </AccordionButton>
-                      <AccordionPanel pt={2} pb={1} pl={3} pr={0}>
-                        <Link href={`/users/${account}/bids`} w="full">
-                          <NavItemMobile>
-                            {t('navbar.activity.bids')}
-                          </NavItemMobile>
-                        </Link>
-                        <Link href={`/users/${account}/trades`} w="full">
-                          <NavItemMobile>
-                            {t('navbar.activity.trades')}
-                          </NavItemMobile>
-                        </Link>
-                        <Link href={`/users/${account}/offers`} w="full">
-                          <NavItemMobile>
-                            {t('navbar.activity.offers')}
-                          </NavItemMobile>
-                        </Link>
-                      </AccordionPanel>
-                    </AccordionItem>
-                  </Accordion>
-                  <Link href="/notification">
-                    <NavItemMobile>{t('navbar.notifications')}</NavItemMobile>
-                  </Link>
-                  <Accordion as="nav" allowMultiple>
-                    <AccordionItem border="none">
-                      <AccordionButton
-                        py={2}
-                        pr={4}
-                        pl={3}
-                        fontWeight="medium"
-                        borderColor="gray.200"
-                        borderLeftWidth="4px"
-                        color="gray.600"
-                        _hover={{
-                          color: 'gray.800',
-                          borderColor: 'brand.200',
-                          bgColor: 'brand.50',
-                        }}
-                      >
-                        <Text variant="subtitle1" textAlign="left" flex="1">
-                          {t('navbar.user.title')}
-                        </Text>
-                        <AccordionIcon />
-                      </AccordionButton>
-                      <AccordionPanel pt={2} pb={1} pl={3} pr={0}>
-                        <Link href={`/users/${account}`}>
-                          <NavItemMobile>
-                            {t('navbar.user.profile')}
-                          </NavItemMobile>
-                        </Link>
-                        <Link href={`/account/wallet`}>
-                          <NavItemMobile>{t('navbar.user.wallet')}</NavItemMobile>
-                        </Link>
-                        <Link href={`/account/edit`}>
-                          <NavItemMobile>{t('navbar.user.edit')}</NavItemMobile>
-                        </Link>
-                        {topUp.allowTopUp && (
-                          <NavItemMobile
-                            onClick={
-                              topUp.addingFund ? undefined : () => topUp.addFund()
-                            }
-                            as="span"
-                          >
-                            {t('navbar.user.top-up')}
-                          </NavItemMobile>
-                        )}
-                        <NavItemMobile onClick={signOutFn}>
-                          {t('navbar.user.sign-out')}
+            )}
+            {account ? (
+              <>
+                <Accordion as="nav" allowMultiple>
+                  <AccordionItem border="none">
+                    <AccordionButton
+                      py={2}
+                      pr={4}
+                      pl={3}
+                      fontWeight="medium"
+                      borderColor="gray.200"
+                      borderLeftWidth="4px"
+                      color="gray.600"
+                      _hover={{
+                        color: 'gray.800',
+                        borderColor: 'brand.200',
+                        bgColor: 'brand.50',
+                      }}
+                    >
+                      <Text variant="subtitle1" textAlign="left" flex="1">
+                        {t('navbar.activity.title')}
+                      </Text>
+                      <AccordionIcon />
+                    </AccordionButton>
+                    <AccordionPanel pt={2} pb={1} pl={3} pr={0}>
+                      <Link href={`/users/${account}/bids`} w="full">
+                        <NavItemMobile>
+                          {t('navbar.activity.bids')}
                         </NavItemMobile>
-                      </AccordionPanel>
-                    </AccordionItem>
-                  </Accordion>
-                </>
-              ) : (
-                <Link href="/login">
-                  <NavItemMobile>{t('navbar.sign-in')}</NavItemMobile>
+                      </Link>
+                      <Link href={`/users/${account}/trades`} w="full">
+                        <NavItemMobile>
+                          {t('navbar.activity.trades')}
+                        </NavItemMobile>
+                      </Link>
+                      <Link href={`/users/${account}/offers`} w="full">
+                        <NavItemMobile>
+                          {t('navbar.activity.offers')}
+                        </NavItemMobile>
+                      </Link>
+                    </AccordionPanel>
+                  </AccordionItem>
+                </Accordion>
+                <Link href="/notification">
+                  <NavItemMobile>{t('navbar.notifications')}</NavItemMobile>
                 </Link>
-              )}
-              {multiLang && (
-                <>
-                  <Divider mx={3} mt={4} w="auto" />
-                  <Flex pl={3} pr={4} pt={6} pb={4}>
-                    <Select
-                      label=""
-                      name="lang"
-                      choices={multiLang.choices}
-                      value={multiLang.locale}
-                      onChange={(value) =>
-                        push({ pathname: multiLang.pathname, query }, asPath, {
-                          locale: value,
-                        })
-                      }
-                    />
-                  </Flex>
-                </>
-              )}
-            </DrawerBody>
-          </DrawerContent>
-        </Drawer>
-      </>
-    )
-  }
+                <Accordion as="nav" allowMultiple>
+                  <AccordionItem border="none">
+                    <AccordionButton
+                      py={2}
+                      pr={4}
+                      pl={3}
+                      fontWeight="medium"
+                      borderColor="gray.200"
+                      borderLeftWidth="4px"
+                      color="gray.600"
+                      _hover={{
+                        color: 'gray.800',
+                        borderColor: 'brand.200',
+                        bgColor: 'brand.50',
+                      }}
+                    >
+                      <Text variant="subtitle1" textAlign="left" flex="1">
+                        {t('navbar.user.title')}
+                      </Text>
+                      <AccordionIcon />
+                    </AccordionButton>
+                    <AccordionPanel pt={2} pb={1} pl={3} pr={0}>
+                      <Link href={`/users/${account}`}>
+                        <NavItemMobile>
+                          {t('navbar.user.profile')}
+                        </NavItemMobile>
+                      </Link>
+                      <Link href={`/account/wallet`}>
+                        <NavItemMobile>{t('navbar.user.wallet')}</NavItemMobile>
+                      </Link>
+                      <Link href={`/account/edit`}>
+                        <NavItemMobile>{t('navbar.user.edit')}</NavItemMobile>
+                      </Link>
+                      {topUp.allowTopUp && (
+                        <NavItemMobile
+                          onClick={
+                            topUp.addingFund ? undefined : () => topUp.addFund()
+                          }
+                          as="span"
+                        >
+                          {t('navbar.user.top-up')}
+                        </NavItemMobile>
+                      )}
+                      <NavItemMobile onClick={signOutFn}>
+                        {t('navbar.user.sign-out')}
+                      </NavItemMobile>
+                    </AccordionPanel>
+                  </AccordionItem>
+                </Accordion>
+              </>
+            ) : (
+              <Link href="/login">
+                <NavItemMobile>{t('navbar.sign-in')}</NavItemMobile>
+              </Link>
+            )}
+            {multiLang && (
+              <>
+                <Divider mx={3} mt={4} w="auto" />
+                <Flex pl={3} pr={4} pt={6} pb={4}>
+                  <Select
+                    label=""
+                    name="lang"
+                    choices={multiLang.choices}
+                    value={multiLang.locale}
+                    onChange={(value) =>
+                      push({ pathname: multiLang.pathname, query }, asPath, {
+                        locale: value,
+                      })
+                    }
+                  />
+                </Flex>
+              </>
+            )}
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+    </>
+  )
+}
 
 // Activity menu for desktop. Only visible when signed in
 const ActivityMenu: VFC<{ account: string }> = ({ account }) => {
@@ -410,177 +410,176 @@ const Navbar: VFC<{
   disableMinting,
   signer,
 }) => {
-    const { t } = useTranslation('components')
-    const { isOpen, onOpen, onClose } = useDisclosure()
-    const { account: accountWithChecksum, deactivate } = useWeb3React()
-    const account = accountWithChecksum?.toLowerCase()
-    const { asPath, query, push, isReady } = router
-    const { register, setValue, handleSubmit } = useForm<FormData>()
-    const [addFund, { loading: addingFund }] = useAddFund(signer)
-    const [cookies] = useCookies()
-    const lastNotification = cookies[`lastNotification-${account}`]
-    const { data, refetch } = useNavbarAccountQuery({
-      variables: {
-        account: account?.toLowerCase() || '',
-        lastNotification: new Date(lastNotification || 0),
-      },
-      skip: !account,
-    })
+  const { t } = useTranslation('components')
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { account: accountWithChecksum, deactivate } = useWeb3React()
+  const account = accountWithChecksum?.toLowerCase()
+  const { asPath, query, push, isReady } = router
+  const { register, setValue, handleSubmit } = useForm<FormData>()
+  const [addFund, { loading: addingFund }] = useAddFund(signer)
+  const [cookies] = useCookies()
+  const lastNotification = cookies[`lastNotification-${account}`]
+  const { data, refetch } = useNavbarAccountQuery({
+    variables: {
+      account: account?.toLowerCase() || '',
+      lastNotification: new Date(lastNotification || 0),
+    },
+    skip: !account,
+  })
 
-    useEffect(() => {
-      if (!isReady) return
-      if (!query.search) return setValue('search', '')
-      if (Array.isArray(query.search)) return setValue('search', '')
-      setValue('search', query.search)
-    }, [isReady, setValue, query.search])
+  useEffect(() => {
+    if (!isReady) return
+    if (!query.search) return setValue('search', '')
+    if (Array.isArray(query.search)) return setValue('search', '')
+    setValue('search', query.search)
+  }, [isReady, setValue, query.search])
 
-    useEffect(() => {
-      router.events.on('routeChangeStart', refetch)
-      return () => {
-        router.events.off('routeChangeStart', refetch)
-      }
-    }, [router.events, refetch])
+  useEffect(() => {
+    router.events.on('routeChangeStart', refetch)
+    return () => {
+      router.events.off('routeChangeStart', refetch)
+    }
+  }, [router.events, refetch])
 
-    const onSubmit = handleSubmit((data) => {
-      if (data.search) query.search = data.search
-      else delete query.search
-      delete query.skip // reset pagination
-      return push({ pathname: '/explore', query })
-    })
+  const onSubmit = handleSubmit((data) => {
+    if (data.search) query.search = data.search
+    else delete query.search
+    delete query.skip // reset pagination
+    return push({ pathname: '/explore', query })
+  })
 
-    return (
-      <>
-        <Flex mx="auto" h={16} gap={6} px={{ base: 6, lg: 8 }} maxW="7xl">
-          <Flex align="center">
-            <Flex as={Link} href="/">
-              <Image
-                src={logo?.path || '/logo.svg'}
-                alt="Logo"
-                width={logo?.width || 139}
-                height={logo?.height || 32}
-              />
-            </Flex>
+  return (
+    <>
+      <Flex mx="auto" h={16} gap={6} px={{ base: 6, lg: 8 }} maxW="7xl">
+        <Flex align="center">
+          <Flex as={Link} href="/">
+            <Image
+              src={logo?.path || '/logo.svg'}
+              alt="Logo"
+              width={logo?.width || 139}
+              height={logo?.height || 32}
+            />
           </Flex>
-          <Flex as="form" my="auto" grow={1} onSubmit={onSubmit}>
-            <InputGroup>
-              <InputLeftElement pointerEvents="none">
-                <Icon as={HiOutlineSearch} w={6} h={6} color="gray.400" />
-              </InputLeftElement>
-              <Input placeholder={t('navbar.search')} {...register('search')} />
-            </InputGroup>
+        </Flex>
+        <Flex as="form" my="auto" grow={1} onSubmit={onSubmit}>
+          <InputGroup>
+            <InputLeftElement pointerEvents="none">
+              <Icon as={HiOutlineSearch} w={6} h={6} color="gray.400" />
+            </InputLeftElement>
+            <Input placeholder={t('navbar.search')} {...register('search')} />
+          </InputGroup>
+        </Flex>
+        <Flex display={{ base: 'none', lg: 'flex' }} align="center" gap={6}>
+          <Flex
+            as={Link}
+            href="/explore"
+            color="brand.black"
+            align="center"
+            _hover={{ color: 'gray.500' }}
+          >
+            <Text as="span" variant="button2">
+              {t('navbar.explore')}
+            </Text>
           </Flex>
-          <Flex display={{ base: 'none', lg: 'flex' }} align="center" gap={6}>
+          {!disableMinting && (
             <Flex
               as={Link}
-              href="/explore"
+              href="/create"
               color="brand.black"
               align="center"
               _hover={{ color: 'gray.500' }}
             >
               <Text as="span" variant="button2">
-                {t('navbar.explore')}
+                {t('navbar.create')}
               </Text>
             </Flex>
-            {!disableMinting && (
+          )}
+          {account && data?.account ? (
+            <>
+              <ActivityMenu account={account} />
+
               <Flex
                 as={Link}
-                href="/create"
+                href="/withdraw"
                 color="brand.black"
                 align="center"
                 _hover={{ color: 'gray.500' }}
               >
                 <Text as="span" variant="button2">
-                  {t('navbar.create')}
+                  {t('navbar.withdraw')}
                 </Text>
               </Flex>
-            )}
-            {account && data?.account ? (
-              <>
-                <ActivityMenu account={account} />
 
-                <Flex
-                  as={Link}
-                  href="/withdraw"
-                  color="brand.black"
-                  align="center"
-                  _hover={{ color: 'gray.500' }}
+              <Link href="/notification">
+                <IconButton
+                  aria-label="Notifications"
+                  variant="ghost"
+                  colorScheme="gray"
+                  rounded="full"
+                  position="relative"
                 >
-                  <Text as="span" variant="button2">
-                    {t('navbar.withdraw')}
-                  </Text>
-                </Flex>
-
-
-                <Link href="/notification">
-                  <IconButton
-                    aria-label="Notifications"
-                    variant="ghost"
-                    colorScheme="gray"
-                    rounded="full"
-                    position="relative"
-                  >
-                    <div>
-                      <Icon as={FaBell} color="brand.black" h={4} w={4} />
-                      {data.account.notifications.totalCount > 0 && (
-                        <Flex
-                          position="absolute"
-                          top={2}
-                          right={2}
-                          h={2.5}
-                          w={2.5}
-                          align="center"
-                          justify="center"
-                          rounded="full"
-                          bgColor="red.500"
-                        />
-                      )}
-                    </div>
-                  </IconButton>
-                </Link>
-                <UserMenu
-                  account={account}
-                  topUp={{ allowTopUp, addFund, addingFund }}
-                  user={data.account}
-                  signOutFn={deactivate}
-                />
-              </>
-            ) : (
-              <Button onClick={onOpen}>
-                <Text as="span" isTruncated>
-                  {t('navbar.sign-in')}
-                </Text>
-              </Button>
-            )}
-            {multiLang && (
-              <Flex display={{ base: 'none', lg: 'flex' }} align="center">
-                <Select
-                  name="lang"
-                  choices={multiLang.choices}
-                  value={multiLang.locale}
-                  onChange={(value) =>
-                    push({ pathname: multiLang.pathname, query }, asPath, {
-                      locale: value,
-                    })
-                  }
-                />
-              </Flex>
-            )}
-          </Flex>
-          <Flex display={{ base: 'flex', lg: 'none' }} align="center">
-            <DrawerMenu
-              account={account}
-              logo={logo}
-              router={router}
-              multiLang={multiLang}
-              topUp={{ allowTopUp, addFund, addingFund }}
-              disableMinting={disableMinting}
-              signOutFn={deactivate}
-            />
-          </Flex>
+                  <div>
+                    <Icon as={FaBell} color="brand.black" h={4} w={4} />
+                    {data.account.notifications.totalCount > 0 && (
+                      <Flex
+                        position="absolute"
+                        top={2}
+                        right={2}
+                        h={2.5}
+                        w={2.5}
+                        align="center"
+                        justify="center"
+                        rounded="full"
+                        bgColor="red.500"
+                      />
+                    )}
+                  </div>
+                </IconButton>
+              </Link>
+              <UserMenu
+                account={account}
+                topUp={{ allowTopUp, addFund, addingFund }}
+                user={data.account}
+                signOutFn={deactivate}
+              />
+            </>
+          ) : (
+            <Button onClick={onOpen}>
+              <Text as="span" isTruncated>
+                {t('navbar.sign-in')}
+              </Text>
+            </Button>
+          )}
+          {multiLang && (
+            <Flex display={{ base: 'none', lg: 'flex' }} align="center">
+              <Select
+                name="lang"
+                choices={multiLang.choices}
+                value={multiLang.locale}
+                onChange={(value) =>
+                  push({ pathname: multiLang.pathname, query }, asPath, {
+                    locale: value,
+                  })
+                }
+              />
+            </Flex>
+          )}
         </Flex>
-        <LoginModal isOpen={isOpen} onClose={onClose} {...login} />
-      </>
-    )
-  }
+        <Flex display={{ base: 'flex', lg: 'none' }} align="center">
+          <DrawerMenu
+            account={account}
+            logo={logo}
+            router={router}
+            multiLang={multiLang}
+            topUp={{ allowTopUp, addFund, addingFund }}
+            disableMinting={disableMinting}
+            signOutFn={deactivate}
+          />
+        </Flex>
+      </Flex>
+      <LoginModal isOpen={isOpen} onClose={onClose} {...login} />
+    </>
+  )
+}
 
 export default Navbar

@@ -161,7 +161,7 @@ const WithdrawModal: FC<Props> = ({ isOpen, onClose }) => {
           setCurrentUsername('')
         })
     }
-  }, [transactionHash])
+  }, [transactionHash, account])
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="xl">

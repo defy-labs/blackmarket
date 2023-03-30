@@ -305,7 +305,7 @@ const WithdrawModal: FC<Props> = ({ isOpen, onClose }) => {
                 <Button
                   size="lg"
                   width="100%"
-                  onClick={(e) =>
+                  onClick={() =>
                     window.open(
                       `https://polygonscan.com/tx/${transactionHash}`,
                       '_blank',

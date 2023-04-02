@@ -285,7 +285,7 @@ const WithdrawModal: FC<Props> = ({ isOpen, onClose }) => {
             </Stack>
           )}
         </ModalBody>
-        <ModalFooter>
+        <ModalFooter flexDirection="column" gap={3}>
           <Button
             isLoading={isTransferring}
             loadingText={t('withdraw.transferring')}
@@ -297,26 +297,23 @@ const WithdrawModal: FC<Props> = ({ isOpen, onClose }) => {
           >
             {t('withdraw.transfer')}
           </Button>
-          {
-            // todo: formatting
-            withdrawnState && (
-              <>
-                <Text as="div">{t('withdraw.withdrawnSuccessfully')}</Text>
-                <Button
-                  size="lg"
-                  width="100%"
-                  onClick={() =>
-                    window.open(
-                      `https://polygonscan.com/tx/${transactionHash}`,
-                      '_blank',
-                    )
-                  }
-                >
-                  {'Polygonscan'}
-                </Button>
-              </>
-            )
-          }
+          {withdrawnState && (
+            <>
+              <Text as="div">{t('withdraw.withdrawnSuccessfully')}</Text>
+              <Button
+                size="lg"
+                width="100%"
+                onClick={() =>
+                  window.open(
+                    `https://polygonscan.com/tx/${transactionHash}`,
+                    '_blank',
+                  )
+                }
+              >
+                {'Polygonscan'}
+              </Button>
+            </>
+          )}
         </ModalFooter>
       </ModalContent>
     </Modal>

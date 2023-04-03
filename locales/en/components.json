@@ -271,7 +271,8 @@
       "edit": "Edit profile",
       "top-up": "Top-up",
       "sign-out": "Sign out"
-    }
+    },
+    "withdraw": "Withdraw"
   },
   "network-selection": {
     "title": "Wrong network",
@@ -802,6 +803,18 @@
     "balances": {
       "none": "There are no available balances."
     }
+  },
+  "withdraw": {
+    "title": "Withdraw DEFY",
+    "balance": "Balance",
+    "from": "From",
+    "to": "To",
+    "transfer": "Transfer",
+    "transferring": "Transferring",
+    "after": "Will remain",
+    "transferInvalidMessage": "Transfer amount must be greater than 0",
+    "transferInvalidExceeded": "You do not have enough DEFY for this transfer",
+    "withdrawnSuccessfully": "DEFY Withdrawn Successfully"
   },
   "welcomeModal": {
     "title": "Welcome to the DEFY Black Market.",

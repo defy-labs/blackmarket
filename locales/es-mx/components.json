@@ -271,7 +271,8 @@
       "edit": "Editar perfil",
       "top-up": "Completar",
       "sign-out": "Cerrar sesión"
-    }
+    },
+    "withdraw": "Retirar"
   },
   "network-selection": {
     "title": "Red Incorrecta",
@@ -802,6 +803,18 @@
     "balances": {
       "none": "No hay balances disponibles."
     }
+  },
+  "withdraw": {
+    "title": "Retirar DEFY",
+    "balance": "del saldo total del juego",
+    "from": "De",
+    "to": "A",
+    "transfer": "Transferir",
+    "transferring": "Transferencia",
+    "after": "Después de la transferencia, su saldo en el juego será",
+    "transferInvalidMessage": "El monto de la transferencia debe ser mayor que 0",
+    "transferInvalidExceeded": "No tienes suficiente DEFY para esta transferencia",
+    "withdrawnSuccessfully": "DEFY Retirado con éxito"
   },
   "welcomeModal": {
     "title": "Welcome to the DEFY Black Market.",

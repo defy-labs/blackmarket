@@ -271,7 +271,8 @@
       "edit": "プロフィールの編集",
       "top-up": "チャージ",
       "sign-out": "サインアウト"
-    }
+    },
+    "withdraw": "撤退"
   },
   "network-selection": {
     "title": "間違ったネットワーク",
@@ -802,6 +803,18 @@
     "balances": {
       "none": "利用可能な残高はありません。"
     }
+  },
+  "withdraw": {
+    "title": "撤退 DEFY",
+    "balance": "ゲーム内残高の合計",
+    "from": "から",
+    "to": "に",
+    "transfer": "移行",
+    "transferring": "転送中",
+    "after": "移行後のゲーム内残高は ",
+    "transferInvalidMessage": "送金金額は 0 より大きくなければなりません",
+    "transferInvalidExceeded": "この転送に十分な DEFY がありません",
+    "withdrawnSuccessfully": "DEFY 正常に引き出されました"
   },
   "welcomeModal": {
     "title": "DEFYブラックマーケットへようこそ。",

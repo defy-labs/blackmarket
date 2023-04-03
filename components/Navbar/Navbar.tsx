@@ -40,6 +40,7 @@ import { InjectedConnector } from '@web3-react/injected-connector'
 import { WalletConnectConnector } from '@web3-react/walletconnect-connector'
 import { WalletLinkConnector } from '@web3-react/walletlink-connector'
 import WelcomeModal from 'components/Modal/Welcome'
+import WithdrawModal from 'components/Modal/Withdraw'
 import useTranslation from 'next-translate/useTranslation'
 import { MittEmitter } from 'next/dist/shared/lib/mitt'
 import Image from 'next/image'
@@ -422,16 +423,11 @@ const Navbar: VFC<{
   signer,
 }) => {
   const { t } = useTranslation('components')
-  const {
-    isOpen: isLoginOpen,
-    onOpen: onOpenLogin,
-    onClose: onCloseLogin,
-  } = useDisclosure()
-  const {
-    isOpen: isWelcomeOpen,
-    onOpen: onOpenWelcome,
-    onClose: onCloseWelcome,
-  } = useDisclosure()
+
+  const loginDisclosure = useDisclosure()
+  const withdrawDisclosure = useDisclosure()
+  const welcomeDisclosure = useDisclosure()
+
   const { account: accountWithChecksum, deactivate } = useWeb3React()
   const account = accountWithChecksum?.toLowerCase()
   const { asPath, query, push, isReady } = router
@@ -452,13 +448,13 @@ const Navbar: VFC<{
   )
 
   const handleOnCloseWelcome = useCallback(() => {
-    onCloseWelcome()
+    welcomeDisclosure.onClose()
     setHasViewedWelcome(true)
 
     if (typeof window !== 'undefined') {
       localStorage.setItem(WELCOME_MODAL_STORAGE_KEY, 'true')
     }
-  }, [onCloseWelcome])
+  }, [welcomeDisclosure])
 
   const onSubmit = handleSubmit((data) => {
     if (data.search) query.search = data.search
@@ -484,9 +480,9 @@ const Navbar: VFC<{
   // Handle welcome screen state
   useEffect(() => {
     if (hasViewedWelcome === false) {
-      onOpenWelcome()
+      welcomeDisclosure.onOpen()
     }
-  }, [hasViewedWelcome, onOpenWelcome])
+  }, [hasViewedWelcome, welcomeDisclosure])
 
   return (
     <>
@@ -537,6 +533,13 @@ const Navbar: VFC<{
           {account && data?.account ? (
             <>
               <ActivityMenu account={account} />
+
+              <Button onClick={withdrawDisclosure.onOpen}>
+                <Text as="span" isTruncated>
+                  {t('navbar.withdraw')}
+                </Text>
+              </Button>
+
               <Link href="/notification">
                 <IconButton
                   aria-label="Notifications"
@@ -571,7 +574,7 @@ const Navbar: VFC<{
               />
             </>
           ) : (
-            <Button onClick={onOpenLogin}>
+            <Button onClick={loginDisclosure.onOpen}>
               <Text as="span" isTruncated>
                 {t('navbar.sign-in')}
               </Text>
@@ -605,9 +608,21 @@ const Navbar: VFC<{
         </Flex>
       </Flex>
 
-      <LoginModal isOpen={isLoginOpen} onClose={onCloseLogin} {...login} />
+      <LoginModal
+        isOpen={loginDisclosure.isOpen}
+        onClose={loginDisclosure.onClose}
+        {...login}
+      />
 
-      <WelcomeModal isOpen={isWelcomeOpen} onClose={handleOnCloseWelcome} />
+      <WithdrawModal
+        isOpen={withdrawDisclosure.isOpen}
+        onClose={withdrawDisclosure.onClose}
+      />
+
+      <WelcomeModal
+        isOpen={welcomeDisclosure.isOpen}
+        onClose={handleOnCloseWelcome}
+      />
     </>
   )
 }

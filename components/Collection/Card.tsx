@@ -2,6 +2,7 @@ import { Flex, Heading } from '@chakra-ui/react'
 import { VFC } from 'react'
 import { COLORS } from 'styles/theme'
 import Link from '../Link/Link'
+import Image from 'next/image'
 
 export type Props = {
   image: string
@@ -25,7 +26,7 @@ const CollectionCard: VFC<Props> = ({ image, title, collectionAddress }) => {
       href={href}
     >
       <Flex w="100%" h={48} pos="relative">
-        <img src={image} alt={title} style={{ objectFit: 'cover' }} />
+        <Image src={image} alt={title} style={{ objectFit: 'cover' }} />
 
         <Flex
           pos="absolute"

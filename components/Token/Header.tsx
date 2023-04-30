@@ -8,9 +8,9 @@ import {
 } from '@chakra-ui/react'
 import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
-import { useMemo, VFC } from 'react'
+import { VFC } from 'react'
 import { MintType, Standard } from '../../graphql'
-import useBlockExplorer from '../../hooks/useBlockExplorer'
+// import useBlockExplorer from '../../hooks/useBlockExplorer'
 import Link from '../Link/Link'
 import type { Props as SaleDetailProps } from '../Sales/Detail'
 import TokenMedia from '../Token/Media'
@@ -54,39 +54,10 @@ export type Props = {
 
 const TokenHeader: VFC<Props> = ({
   asset,
-  currencies,
   creator,
   owners,
   numberOfOwners,
-  auction,
-  bestBid,
-  sales,
-  isHomepage,
-  signer,
-  currentAccount,
-  onOfferCanceled,
-  onAuctionAccepted,
 }) => {
-  const blockExplorer = useBlockExplorer(asset.collection.chainId)
-  const isOwner = useMemo(() => asset.owned.gt('0'), [asset])
-
-  // const ownAllSupply = useMemo(
-  //   () => asset.owned.gte(asset.totalSupply),
-  //   [asset],
-  // )
-  // const isSingle = useMemo(
-  //   () => asset.collection.standard === 'ERC721',
-  //   [asset],
-  // )
-
-  const chainCurrencies = useMemo(
-    () =>
-      currencies.filter(
-        (currency) => currency.chainId === asset.collection.chainId,
-      ),
-    [currencies, asset],
-  )
-
   return (
     <SimpleGrid spacing={4} flex="0 0 100%" columns={{ base: 0, md: 2 }}>
       <Box my="auto" p={{ base: 6, md: 12 }} textAlign="center">

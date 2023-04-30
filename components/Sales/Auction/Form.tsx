@@ -28,7 +28,7 @@ import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
 import { formatError, getHumanizedDate, useCreateAuction } from '@nft/hooks'
 import useTranslation from 'next-translate/useTranslation'
-import { useMemo, VFC } from 'react'
+import { useEffect, useMemo, VFC } from 'react'
 import { useForm } from 'react-hook-form'
 import useParseBigNumber from '../../../hooks/useParseBigNumber'
 import Image from '../../Image/Image'
@@ -74,10 +74,14 @@ const SalesAuctionForm: VFC<Props> = ({
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      price: '0',
       currencyId: currencies[0]?.id,
     },
   })
+
+  useEffect(() => {
+    const defaultCurrency = currencies[0]?.id
+    if (defaultCurrency) setValue('currencyId', defaultCurrency)
+  }, [currencies, setValue])
 
   const price = watch('price')
 
@@ -162,9 +166,8 @@ const SalesAuctionForm: VFC<Props> = ({
                 placeholder={t('sales.auction.form.price.placeholder')}
                 {...register('price', {
                   validate: (value) => {
-                    if (parseFloat(value) <= 0)
+                    if (value !== undefined && parseFloat(value) < 0)
                       return t('sales.auction.form.validation.positive')
-
                     const nbDecimals = value.split('.')[1]?.length || 0
                     if (nbDecimals > currency.decimals)
                       return t('sales.auction.form.validation.decimals', {
@@ -184,6 +187,7 @@ const SalesAuctionForm: VFC<Props> = ({
                 alt={currency.symbol}
                 width={24}
                 height={24}
+                objectFit="cover"
               />
             </InputRightElement>
           </InputGroup>

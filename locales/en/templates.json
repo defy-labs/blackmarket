@@ -6,55 +6,77 @@
     "explore": "Explore All Collectibles",
     "collections": "Collections",
     "auctions": "Auctions",
-    "featured": "Featured Collectibles"
+    "featured": "Featured NFTs"
   },
   "explore": {
-    "title": "Explore Collectibles",
-    "empty": {
-      "title": "No Collectibles Found",
-      "description": "Update your filters to find more collectibles."
+    "title": "Explore",
+    "tabs": {
+      "nfts": "NFTs",
+      "users": "Users",
+      "collections": "Collections"
     },
-    "form": {
-      "submit": "Apply Filters",
-      "clear": "Clear All",
-      "currency": {
-        "label": "Price range",
-        "placeholder": "Select a currency"
+    "nfts": {
+      "filter": "Filters",
+      "empty": {
+        "title": "No NFTs Found",
+        "description": "Update your filters to find more NFTs."
       },
-      "min-price": {
-        "placeholder": "From",
-        "validation": {
-          "positive": "Min price must be greater than 0.",
-          "decimals": "Min price supports a maximum of {{ nbDecimals }} decimals."
-        }
-      },
-      "max-price": {
-        "placeholder": "To",
-        "validation": {
-          "positive": "Max price must be greater than 0.",
-          "decimals": "Max price supports a maximum of {{ nbDecimals }} decimals."
-        }
-      },
-      "offers": {
-        "label": "Status",
+      "orderBy": {
+        "label": "Sort by",
         "values": {
-          "fixed": "Fixed price",
-          "auction": "Auction"
+          "createdAtDesc": "Date: Newest",
+          "createdAtAsc": "Date: Oldest"
         }
+      }
+    },
+    "users": {
+      "empty": {
+        "title": "No Users Found",
+        "description": "Update your filters to find more users."
+      }
+    },
+    "collections": {
+      "empty": {
+        "title": "No Collections Found",
+        "description": "Update your filters to find more collections."
       },
-      "categories": {
-        "label": "Trait Filters"
+      "orderBy": {
+        "values": {
+          "totalVolDesc": "Volume: All-time",
+          "24hVolDesc": "Volume: 24h",
+          "7dVolDesc": "Volume: 7d",
+          "14dVolDesc": "Volume: 14d",
+          "28dVolDesc": "Volume: 28d"
+        }
+      }
+    }
+  },
+  "collection": {
+    "filter": "Filters",
+    "header": {
+      "data-labels": {
+        "floor-price": "Floor price",
+        "total-volume": "Total Volume",
+        "owners": "Owners",
+        "items": "Items",
+        "chain": "Chain"
       },
-      "collections": {
-        "label": "Collections"
+      "by": "By",
+      "menu": {
+        "report": "Report"
       }
     },
     "orderBy": {
-      "label": "Sort by",
       "values": {
+        "salesMinUnitPriceInRefAsc": "Price: Low - High",
+        "salesMinUnitPriceInRefDesc": "Price: High - Low",
         "createdAtDesc": "Date: Newest",
         "createdAtAsc": "Date: Oldest"
       }
+    },
+    "empty": {
+      "title": "No NFTs Found",
+      "description": "Update your filters to find more NFTs."
     }
   },
   "asset": {
@@ -75,22 +97,30 @@
           "label": "Report",
           "subject": "Report an NFT",
           "body": "I would like to report the following NFT {{name}} (#{{id}})\nReason: "
-        }
+        },
+        "refresh-metadata": "Refresh Metadata"
       },
       "explorerLink": "View on {{name}}",
       "ipfsLink": "View on IPFS",
       "errors": {
         "image": "An issue occured"
+      },
+      "details": {
+        "title": "Details",
+        "chain": "Chain",
+        "explorer": "View on explorer",
+        "media": "View media",
+        "metadata": "View metadata"
       }
     },
     "form": {
       "title": {
-        "single": "Create Single Collectible",
-        "multiple": "Create Multiple Collectible"
+        "single": "Create Single NFT",
+        "multiple": "Create Multiple NFT"
       },
       "preview": "Preview",
       "notifications": {
-        "created": "Your collectible has been successfully created."
+        "created": "Your NFT has been successfully created."
       },
       "notFound": {
         "title": "Collection Not Found",
@@ -99,8 +129,8 @@
       }
     },
     "typeSelector": {
-      "title": "Create Collectible",
-      "description": "Choose \"Single\" if you want your collectible to be one of a kind or \"Multiple\" if you want to sell one collectible multiple times",
+      "title": "Create NFT",
+      "description": "Choose \"Single\" if you want your NFT to be one of a kind or \"Multiple\" if you want to sell one NFT multiple times",
       "single": {
         "title": "Single",
         "type": "ERC721"
@@ -162,7 +192,7 @@
       },
       "title": "Checkout",
       "notifications": {
-        "purchased": "The collectible has been successfully purchased."
+        "purchased": "The NFT has been successfully purchased."
       },
       "on-sale": "On sale for",
       "per-edition": "per edition"
@@ -172,14 +202,14 @@
         "title": "Create an offer for {{name}}",
         "description": "Create an offer for {{name}}"
       },
-      "title": "Collectible Offer",
+      "title": "NFT Offer",
       "notifications": {
         "created": "Your offer has been successfully created."
       },
       "options": {
         "label": "Type of offer",
         "hints": {
-          "fixed": "Enter price to allow users instantly purchase your collectible",
+          "fixed": "Enter price to allow users instantly purchase your NFT",
           "auction": "Set a period of time for which buyers can place bids"
         },
         "values": {
@@ -244,7 +274,11 @@
         "item": "Item",
         "price": "Highest bid",
         "status": "Status",
-        "created": "Created"
+        "created": "Created",
+        "empty": {
+          "title": "No Results Found",
+          "description": "Come back later or browse the platform in the meantime"
+        }
       }
     },
     "bid-placed": {
@@ -270,7 +304,11 @@
         "item": "Item",
         "price": "Total Amount",
         "status": "Status",
-        "created": "Placed"
+        "created": "Placed",
+        "empty": {
+          "title": "No Results Found",
+          "description": "Come back later or browse the platform in the meantime"
+        }
       },
       "requested": "{{value}} requested",
       "status": {
@@ -303,7 +341,11 @@
         "item": "Item",
         "price": "Total Amount",
         "from": "Bidder",
-        "created": "Received"
+        "created": "Received",
+        "empty": {
+          "title": "No Results Found",
+          "description": "Come back later or browse the platform in the meantime"
+        }
       },
       "requested": "{{value}} requested",
       "accept": {
@@ -343,7 +385,11 @@
         "item": "Item",
         "price": "Unit price",
         "status": "Status",
-        "created": "Created"
+        "created": "Created",
+        "empty": {
+          "title": "No Results Found",
+          "description": "Come back later or browse the platform in the meantime"
+        }
       },
       "status": {
         "active": "Active",
@@ -388,7 +434,11 @@
         "item": "Item",
         "price": "Total Amount",
         "from": "Seller",
-        "created": "Purchased"
+        "created": "Purchased",
+        "empty": {
+          "title": "No Results Found",
+          "description": "Come back later or browse the platform in the meantime"
+        }
       },
       "purchased": "{{value}} purchased"
     },
@@ -410,7 +460,11 @@
         "item": "Item",
         "price": "Total Amount",
         "to": "Buyer",
-        "created": "Sold"
+        "created": "Sold",
+        "empty": {
+          "title": "No Results Found",
+          "description": "Come back later or browse the platform in the meantime"
+        }
       },
       "sold": "{{value}} sold"
     }

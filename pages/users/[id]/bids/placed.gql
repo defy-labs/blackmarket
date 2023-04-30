@@ -15,6 +15,7 @@ query FetchUserBidsPlaced(
   }
   onSale: assets(
     filter: {
+      ownershipsExist: true
       or: [
         {
           sales: {
@@ -76,6 +77,7 @@ query FetchUserBidsPlaced(
         id
         name
         image
+        chainId
       }
     }
   }

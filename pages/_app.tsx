@@ -1,18 +1,13 @@
-import {
-  ApolloClient,
-  ApolloProvider,
-  InMemoryCache,
-  NormalizedCacheObject,
-} from '@apollo/client'
+import { ApolloProvider } from '@apollo/client'
 import Bugsnag from '@bugsnag/js'
 import BugsnagPluginReact from '@bugsnag/plugin-react'
-import { Box, Button, ChakraProvider, Flex, Link } from '@chakra-ui/react'
-import { Signer } from '@ethersproject/abstract-signer'
-import { Web3Provider } from '@ethersproject/providers'
-import { LiteflowProvider, useAuthenticate } from '@nft/hooks'
-import { useWeb3React, Web3ReactProvider } from '@web3-react/core'
+import { Box, Button, ChakraProvider, Flex, Link, useToast } from '@chakra-ui/react'
+import { LiteflowProvider } from '@nft/hooks'
+import { lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit'
+import '@rainbow-me/rainbowkit/styles.css'
 import dayjs from 'dayjs'
-import type { AppProps } from 'next/app'
+import type { AppContext, AppInitialProps, AppProps } from 'next/app'
+import App from 'next/app'
 import { useRouter } from 'next/router'
 import { GoogleAnalytics, usePageViews } from 'nextjs-google-analytics'
 import NProgress from 'nprogress'
@@ -21,54 +16,39 @@ import React, {
   ComponentType,
   Fragment,
   PropsWithChildren,
-  useCallback,
   useEffect,
   useMemo,
 } from 'react'
-import { CookiesProvider, useCookies } from 'react-cookie'
-import { Helmet } from 'react-helmet'
-import ChatWindow from '../components/ChatWindow'
+import { Cookies, CookiesProvider } from 'react-cookie'
+import {
+  useAccount as useWagmiAccount,
+  useDisconnect,
+  WagmiConfig,
+} from 'wagmi'
+import getClient from '../client'
+import Banner from '../components/Banner/Banner'
 import Footer from '../components/Footer/Footer'
 import Head from '../components/Head'
 import Navbar from '../components/Navbar/Navbar'
-import connectors from '../connectors'
+import { chains, client } from '../connectors'
 import environment from '../environment'
-import useEagerConnect from '../hooks/useEagerConnect'
+import useAccount, { COOKIES, COOKIE_JWT_TOKEN } from '../hooks/useAccount'
 import useSigner from '../hooks/useSigner'
-import { APOLLO_STATE_PROP_NAME, PropsWithUserAndState } from '../props'
-import {
-  COOKIE_JWT_TOKEN,
-  COOKIE_OPTIONS,
-  currentJWT,
-  jwtValidity,
-} from '../session'
 import { theme } from '../styles/theme'
+import { Helmet } from 'react-helmet'
 require('dayjs/locale/ja')
 require('dayjs/locale/zh-cn')
 require('dayjs/locale/es-mx')
 
 NProgress.configure({ showSpinner: false })
 
-function web3Provider(provider: any): Web3Provider {
-  return new Web3Provider(
-    provider,
-    typeof provider.chainId === 'number'
-      ? provider.chainId
-      : typeof provider.chainId === 'string'
-      ? parseInt(provider.chainId)
-      : 'any',
-  )
-}
-
-function Layout({
-  userAddress,
-  children,
-}: PropsWithChildren<{ userAddress: string | null }>) {
+function Layout({ children }: PropsWithChildren<{}>) {
   const router = useRouter()
   const signer = useSigner()
+  const { address } = useAccount()
   const userProfileLink = useMemo(
-    () => (userAddress ? `/users/${userAddress}` : '/login'),
-    [userAddress],
+    () => (address ? `/users/${address}` : '/login'),
+    [address],
   )
   const footerLinks = useMemo(() => {
     const texts = {
@@ -139,180 +119,146 @@ function Layout({
         label: texts[locale].twitter,
       },
       { href: 'https://discord.gg/defydisrupt', label: texts[locale].discord },
-    ]
+    ].filter(Boolean)
   }, [router.locale, userProfileLink])
 
   return (
-    <ChatWindow>
+    <Box mt={12}>
       <Helmet>
         <script
           async
           src="https://widgets.coingecko.com/coingecko-coin-price-marquee-widget.js"
         ></script>
       </Helmet>
-
-      <Box mt={6}>
-        <Navbar
-          allowTopUp={true}
-          router={{
-            asPath: router.asPath,
-            isReady: router.isReady,
-            push: router.push,
-            query: router.query,
-            events: router.events,
-          }}
-          login={{
-            ...connectors,
-            networkName: environment.NETWORK_NAME,
-          }}
-          multiLang={{
-            locale: router.locale,
-            pathname: router.pathname,
-            choices: [
-              { label: 'En', value: 'en' },
-              { label: '日本語', value: 'ja' },
-              { label: '中文', value: 'zh-cn' },
-              { label: 'Spanish', value: 'es-mx' },
-            ],
-          }}
-          signer={signer}
-          disableMinting={environment.MINTABLE_COLLECTIONS.length === 0}
-        />
-
-        <Flex
-          mx="auto"
-          mt={4}
-          gap={{ base: 3, lg: 6 }}
-          direction={{ base: 'column', md: 'row' }}
-          px={{ base: 6, lg: 8 }}
-          maxW="7xl"
-          alignItems="center"
-        >
-          <Flex maxW="100%" overflow="hidden">
-            {React.createElement('coingecko-coin-price-marquee-widget', {
-              'coin-ids': 'defy,ethereum',
-              currency: 'usd',
-              locale: 'en',
-              'background-color': '#ffffff',
-              style: { width: '100%' },
-            })}
-          </Flex>
-
-          <Flex
-            align="center"
-            flexWrap={{ base: 'wrap', md: 'nowrap' }}
-            gap={{ base: 3, lg: 6 }}
-            justifyContent="flex-end"
-          >
-            <Link
-              href="https://info.quickswap.exchange/#/token/0xbf9f916bbda29a7f990f5f55c7607d94d7c3a60b"
-              isExternal
-            >
-              <Button>Buy $DEFY on Quickswap</Button>
-            </Link>
-
-            <Link
-              href="https://www.bybit.com/en-US/trade/spot/DEFY/USDT"
-              isExternal
-            >
-              <Button>Buy $DEFY on ByBit</Button>
-            </Link>
-          </Flex>
-        </Flex>
-
-        {children}
-
-        <Flex justifyContent={'center'}>
-          <script
-            async
-            src="https://widgets.coingecko.com/coingecko-coin-price-chart-widget.js"
-          ></script>
-          {React.createElement('coingecko-coin-price-chart-widget', {
-            'coin-id': 'defy',
+      <Banner />
+      <Navbar
+        allowTopUp={environment.ALLOW_TOP_UP}
+        router={{
+          asPath: router.asPath,
+          isReady: router.isReady,
+          push: router.push,
+          query: router.query,
+          events: router.events,
+        }}
+        multiLang={{
+          locale: router.locale,
+          pathname: router.pathname,
+          choices: [
+            { label: 'En', value: 'en' },
+            { label: '日本語', value: 'ja' },
+            { label: '中文', value: 'zh-cn' },
+            { label: 'Spanish', value: 'es-mx' },
+          ],
+        }}
+        signer={signer}
+        disableMinting={environment.MINTABLE_COLLECTIONS.length === 0}
+      />
+      <Flex
+        mx="auto"
+        mt={4}
+        gap={{ base: 3, lg: 6 }}
+        direction={{ base: 'column', md: 'row' }}
+        px={{ base: 6, lg: 8 }}
+        maxW="7xl"
+        alignItems="center"
+      >
+        <Flex maxW="100%" overflow="hidden">
+          {React.createElement('coingecko-coin-price-marquee-widget', {
+            'coin-ids': 'defy,ethereum',
             currency: 'usd',
-            height: '300',
-            width: '400',
             locale: 'en',
             'background-color': '#ffffff',
+            style: { width: '100%' },
           })}
         </Flex>
-        <Footer name="DEFY Labs." links={footerLinks} />
-      </Box>
-    </ChatWindow>
+
+        <Flex
+          align="center"
+          flexWrap={{ base: 'wrap', md: 'nowrap' }}
+          gap={{ base: 3, lg: 6 }}
+          justifyContent="flex-end"
+        >
+          <Link
+            href="https://info.quickswap.exchange/#/token/0xbf9f916bbda29a7f990f5f55c7607d94d7c3a60b"
+            isExternal
+          >
+            <Button>Buy $DEFY on Quickswap</Button>
+          </Link>
+
+          <Link
+            href="https://www.bybit.com/en-US/trade/spot/DEFY/USDT"
+            isExternal
+          >
+            <Button>Buy $DEFY on ByBit</Button>
+          </Link>
+        </Flex>
+      </Flex>
+      {children}
+      <Flex justifyContent={'center'}>
+        <script
+          async
+          src="https://widgets.coingecko.com/coingecko-coin-price-chart-widget.js"
+        ></script>
+        {React.createElement('coingecko-coin-price-chart-widget', {
+          'coin-id': 'defy',
+          currency: 'usd',
+          height: '300',
+          width: '400',
+          locale: 'en',
+          'background-color': '#ffffff',
+        })}
+      </Flex>
+      <Footer name="DEFY Labs." links={footerLinks} />
+    </Box>
   )
 }
 
-function AccountProvider(
-  props: PropsWithChildren<{
-    cache: NormalizedCacheObject
-  }>,
-) {
-  const signer = useSigner()
-  const ready = useEagerConnect()
-  const { deactivate } = useWeb3React()
-  const [authenticate, { setAuthenticationToken, resetAuthenticationToken }] =
-    useAuthenticate()
-  const [cookies, setCookie, removeCookie] = useCookies([COOKIE_JWT_TOKEN])
+function AccountProvider(props: PropsWithChildren<{}>) {
+  const { login, jwtToken, logout } = useAccount()
+  const { disconnect } = useDisconnect()
+  const toast = useToast()
 
-  const clearAuthenticationToken = useCallback(async () => {
-    resetAuthenticationToken()
-    removeCookie(COOKIE_JWT_TOKEN, COOKIE_OPTIONS)
-  }, [removeCookie, resetAuthenticationToken])
-
-  const authenticateSigner = useCallback(
-    async (signer: Signer) => {
+  const { connector } = useWagmiAccount({
+    async onConnect({ connector }) {
+      if (!connector) return
       try {
-        const existingJWT = currentJWT(cookies)
-        const currentAddress = (await signer.getAddress()).toLowerCase()
-        const jwtAddress = existingJWT?.address.toLowerCase()
-        if (existingJWT && currentAddress === jwtAddress)
-          return setAuthenticationToken(existingJWT.jwt)
-        const { jwtToken } = await authenticate(signer)
-        setCookie(COOKIE_JWT_TOKEN, jwtToken, {
-          ...COOKIE_OPTIONS,
-          ...jwtValidity(jwtToken),
+        await login(connector)
+      } catch (e: any) {
+        toast({
+          title: e.reason || e.message || e.toString(),
+          status: 'warning',
         })
-      } catch {
-        deactivate()
+        disconnect()
       }
     },
-    [authenticate, setCookie, setAuthenticationToken, cookies, deactivate],
-  )
+    onDisconnect() {
+      void logout()
+    },
+  })
+
+  // handle change of account
+  useEffect(() => {
+    if (!connector) return
+    const handleLogin = () => login(connector)
+    connector.on('change', handleLogin)
+    return () => {
+      connector.off('change', handleLogin)
+    }
+  }, [connector, login])
 
   const client = useMemo(
-    () =>
-      new ApolloClient({
-        uri: environment.GRAPHQL_URL,
-        headers: cookies[COOKIE_JWT_TOKEN]
-          ? {
-              authorization: 'Bearer ' + cookies[COOKIE_JWT_TOKEN],
-            }
-          : {},
-        cache: new InMemoryCache({
-          typePolicies: {
-            Account: {
-              keyFields: ['address'],
-            },
-          },
-        }).restore(props.cache),
-        ssrMode: typeof window === 'undefined',
-      }),
-    [cookies, props.cache],
+    // The client needs to be reset when the jwtToken changes but only on the client as the server will
+    // always have the same token and will rerender this app multiple times and needs to preserve the cache
+    () => getClient(jwtToken, typeof window !== 'undefined'),
+    [jwtToken],
   )
-
-  useEffect(() => {
-    if (!ready) return
-    if (!signer) return void clearAuthenticationToken()
-    authenticateSigner(signer).catch(clearAuthenticationToken)
-  }, [signer, ready, authenticateSigner, clearAuthenticationToken])
 
   return <ApolloProvider client={client}>{props.children}</ApolloProvider>
 }
 
-function MyApp({
-  Component,
-  pageProps,
-}: AppProps<PropsWithUserAndState>): JSX.Element {
+export type MyAppProps = { jwt: string | null; now: Date }
+
+function MyApp({ Component, pageProps }: AppProps<MyAppProps>): JSX.Element {
   const router = useRouter()
   dayjs.locale(router.locale)
   usePageViews()
@@ -342,6 +288,11 @@ function MyApp({
     ? (Bugsnag.getPlugin('react')?.createErrorBoundary(React) as ComponentType)
     : Fragment
 
+  const cookies =
+    typeof window === 'undefined'
+      ? new Cookies({ [COOKIE_JWT_TOKEN]: pageProps.jwt } as COOKIES)
+      : undefined
+
   return (
     <ErrorBoundary>
       <Head
@@ -362,20 +313,53 @@ function MyApp({
         <meta name="twitter:card" content="summary" />
       </Head>
       <GoogleAnalytics strategy="lazyOnload" />
-      <Web3ReactProvider getLibrary={web3Provider}>
-        <CookiesProvider>
-          <ChakraProvider theme={theme}>
-            <LiteflowProvider endpoint={environment.GRAPHQL_URL}>
-              <AccountProvider cache={pageProps[APOLLO_STATE_PROP_NAME]}>
-                <Layout userAddress={pageProps?.user?.address || null}>
-                  <Component {...pageProps} />
-                </Layout>
-              </AccountProvider>
-            </LiteflowProvider>
-          </ChakraProvider>
-        </CookiesProvider>
-      </Web3ReactProvider>
+      <WagmiConfig client={client}>
+        <RainbowKitProvider
+          chains={chains}
+          theme={lightTheme({
+            accentColor: theme.colors.brand[500],
+            borderRadius: 'medium',
+          })}
+        >
+          <CookiesProvider cookies={cookies}>
+            <ChakraProvider theme={theme}>
+              <LiteflowProvider endpoint={environment.GRAPHQL_URL}>
+                <AccountProvider>
+                  <Layout>
+                    <Component {...pageProps} />
+                  </Layout>
+                </AccountProvider>
+              </LiteflowProvider>
+            </ChakraProvider>
+          </CookiesProvider>
+        </RainbowKitProvider>
+      </WagmiConfig>
     </ErrorBoundary>
   )
 }
+
+MyApp.getInitialProps = async (
+  appContext: AppContext & {
+    ctx: {
+      req?: { cookies?: COOKIES }
+    }
+  },
+): Promise<AppInitialProps<MyAppProps>> => {
+  const initialProps = (await App.getInitialProps(
+    appContext,
+  )) as AppInitialProps<{}> // force type of props to empty object instead of any so TS will properly require MyAppProps to be returned by this function
+  const jwt = appContext.ctx.req?.cookies?.[COOKIE_JWT_TOKEN] || null
+  // Generate the now time, rounded to the second to avoid re-rendering on the client
+  // TOFIX: find a better way to share the time between the app and document
+  const now = new Date(Math.floor(Date.now() / 1000) * 1000)
+  return {
+    ...initialProps,
+    pageProps: {
+      ...initialProps.pageProps,
+      jwt,
+      now,
+    },
+  }
+}
+
 export default MyApp

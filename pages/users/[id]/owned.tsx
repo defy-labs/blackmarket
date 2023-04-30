@@ -1,12 +1,11 @@
 import { Text } from '@chakra-ui/react'
-import { useWeb3React } from '@web3-react/core'
 import { NextPage } from 'next'
 import Trans from 'next-translate/Trans'
 import useTranslation from 'next-translate/useTranslation'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
-import invariant from 'ts-invariant'
 import Head from '../../../components/Head'
+import Loader from '../../../components/Loader'
 import UserProfileTemplate from '../../../components/Profile'
 import TokenGrid from '../../../components/Token/Grid'
 import {
@@ -19,108 +18,44 @@ import {
 import environment from '../../../environment'
 import {
   AssetDetailFragment,
-  FetchOwnedAssetsDocument,
-  FetchOwnedAssetsQuery,
   OwnershipsOrderBy,
   useFetchOwnedAssetsQuery,
 } from '../../../graphql'
+import useAccount from '../../../hooks/useAccount'
 import useEagerConnect from '../../../hooks/useEagerConnect'
-import useExecuteOnAccountChange from '../../../hooks/useExecuteOnAccountChange'
+import useOrderByQuery from '../../../hooks/useOrderByQuery'
 import usePaginate from '../../../hooks/usePaginate'
+import usePaginateQuery from '../../../hooks/usePaginateQuery'
+import useRequiredQueryParamSingle from '../../../hooks/useRequiredQueryParamSingle'
 import useSigner from '../../../hooks/useSigner'
 import LargeLayout from '../../../layouts/large'
-import { getLimit, getOffset, getOrder, getPage } from '../../../params'
-import { wrapServerSideProps } from '../../../props'
 
 type Props = {
-  userAddress: string
   now: string
-  // Pagination
-  limit: number
-  page: number
-  offset: number
-  // OrderBy
-  orderBy: OwnershipsOrderBy
-  meta: {
-    title: string
-    description: string
-    image: string
-  }
 }
 
-export const getServerSideProps = wrapServerSideProps<Props>(
-  environment.GRAPHQL_URL,
-  async (ctx, client) => {
-    const userAddress = ctx.params?.id
-      ? Array.isArray(ctx.params.id)
-        ? ctx.params.id[0]?.toLowerCase()
-        : ctx.params.id.toLowerCase()
-      : null
-    invariant(userAddress, 'userAddress is falsy')
-
-    const limit = getLimit(ctx, environment.PAGINATION_LIMIT)
-    const page = getPage(ctx)
-    const orderBy = getOrder<OwnershipsOrderBy>(ctx, 'CREATED_AT_DESC')
-    const offset = getOffset(ctx, environment.PAGINATION_LIMIT)
-
-    const now = new Date()
-    const { data, error } = await client.query<FetchOwnedAssetsQuery>({
-      query: FetchOwnedAssetsDocument,
-      variables: {
-        address: userAddress.toLowerCase(),
-        now,
-        limit,
-        offset,
-        orderBy,
-      },
-    })
-    if (error) throw error
-    if (!data) throw new Error('data is falsy')
-    return {
-      props: {
-        userAddress,
-        now: now.toJSON(),
-        limit,
-        page,
-        offset,
-        orderBy,
-        meta: {
-          title: data.account?.name || userAddress,
-          description: data.account?.description || '',
-          image: data.account?.image || '',
-        },
-      },
-    }
-  },
-)
-
-const OwnedPage: NextPage<Props> = ({
-  meta,
-  now,
-  limit,
-  page,
-  offset,
-  orderBy,
-  userAddress,
-}) => {
-  const ready = useEagerConnect()
+const OwnedPage: NextPage<Props> = ({ now }) => {
+  useEagerConnect()
   const signer = useSigner()
   const { t } = useTranslation('templates')
   const { pathname, replace, query } = useRouter()
+  const { limit, offset, page } = usePaginateQuery()
+  const orderBy = useOrderByQuery<OwnershipsOrderBy>('CREATED_AT_DESC')
   const [changePage, changeLimit] = usePaginate()
-  const { account } = useWeb3React()
+  const { address } = useAccount()
+  const userAddress = useRequiredQueryParamSingle('id')
 
   const date = useMemo(() => new Date(now), [now])
-  const { data, refetch } = useFetchOwnedAssetsQuery({
+  const { data, loading } = useFetchOwnedAssetsQuery({
     variables: {
       address: userAddress,
+      currentAddress: address || '',
       limit,
       offset,
       orderBy,
       now: date,
     },
   })
-  useExecuteOnAccountChange(refetch, ready)
 
   const userAccount = useMemo(
     () => convertFullUser(data?.account || null, userAddress),
@@ -156,18 +91,18 @@ const OwnedPage: NextPage<Props> = ({
     [data],
   )
 
-  if (!assets) return <></>
+  if (loading) return <Loader fullPage />
   if (!data) return <></>
   return (
     <LargeLayout>
       <Head
-        title={meta.title}
-        description={meta.description}
-        image={meta.image}
+        title={data.account?.name || userAddress}
+        description={data.account?.description || ''}
+        image={data.account?.image || ''}
       />
       <UserProfileTemplate
         signer={signer}
-        currentAccount={account}
+        currentAccount={address}
         account={userAccount}
         currentTab="owned"
         totals={

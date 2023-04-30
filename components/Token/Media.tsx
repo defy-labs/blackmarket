@@ -1,78 +1,152 @@
-import { Box, Center, Icon, Stack, Text } from '@chakra-ui/react'
+import {
+  Box,
+  Center,
+  chakra,
+  Icon,
+  Stack,
+  Text,
+  useTheme,
+} from '@chakra-ui/react'
 import { FaImage } from '@react-icons/all-files/fa/FaImage'
-import Image, { ImageProps } from 'next/image'
-import { useEffect, useState, VFC, VideoHTMLAttributes } from 'react'
+import { useEffect, useState, VFC } from 'react'
+import Image from '../Image/Image'
 
-const TokenMedia: VFC<
-  (Omit<VideoHTMLAttributes<any>, 'src'> | Omit<ImageProps, 'src'>) & {
-    image: string | null | undefined
-    animationUrl: string | null | undefined
-    unlockedContent: { url: string; mimetype: string | null } | null | undefined
-    defaultText?: string
-    controls?: boolean | undefined
-    layout?: string | undefined
+const getUnlockedContentUrls = (
+  unlockedContent:
+    | {
+        url: string
+        mimetype: string | null
+      }
+    | null
+    | undefined,
+  imageUrl: string,
+  animationUrl: string | null | undefined,
+): { image: string; animation: string | null } => {
+  if (unlockedContent) {
+    return {
+      image: unlockedContent.url,
+      animation: unlockedContent.mimetype?.startsWith('video/')
+        ? unlockedContent.url
+        : null,
+    }
   }
-> = ({
-  image,
+  return {
+    image: imageUrl,
+    animation: animationUrl || null,
+  }
+}
+
+const TokenMedia: VFC<{
+  imageUrl: string
+  animationUrl: string | null | undefined
+  unlockedContent: { url: string; mimetype: string | null } | null | undefined
+  defaultText: string
+  controls?: boolean
+  fill?: boolean
+  sizes: string
+}> = ({
+  imageUrl,
   animationUrl,
   unlockedContent,
   defaultText,
-  layout,
+  fill,
   controls,
-  ...props
+  sizes,
 }) => {
+  const { colors } = useTheme()
+
   // prioritize unlockedContent
-  if (unlockedContent) {
-    if (unlockedContent.mimetype?.startsWith('video/'))
-      animationUrl = unlockedContent.url
-    else image = unlockedContent.url
-  }
+  const { image, animation } = getUnlockedContentUrls(
+    unlockedContent,
+    imageUrl,
+    animationUrl,
+  )
 
   const [imageError, setImageError] = useState(false)
-  // reset when image change. Needed when component is recycled
-  useEffect(() => {
-    setImageError(false)
-  }, [image])
+  const [videoError, setVideoError] = useState(false)
 
-  if (animationUrl) {
-    const { objectFit, src, ...videoProps } = props as ImageProps
+  // reset when image change. Needed when component is recycled
+  useEffect(() => setImageError(false), [image])
+  useEffect(() => setVideoError(false), [image, animation])
+
+  // cannot display anything
+  if (imageError && videoError)
     return (
-      <video
-        src={animationUrl}
-        autoPlay
-        playsInline
-        muted
-        loop
-        controls={controls}
-        {...(videoProps as Omit<VideoHTMLAttributes<any>, 'src'>)}
-      />
-    )
-  }
-  if (image) {
-    const rest = props as Omit<ImageProps, 'src'>
-    if (imageError)
-      return (
-        <Center width="100%" height="100%" bg="brand.100">
+      <>
+        <svg viewBox="0 0 1 1">
+          <rect width="1" height="1" fill={colors.brand[100]} />
+        </svg>
+        <Center width="100%" height="100%" position="absolute">
           <Stack align="center" spacing={3}>
-            <Icon as={FaImage} color="gray.500" w="5em" h="4em" />
+            <Icon as={FaImage} color="gray.500" boxSize="4em" />
             <Text color="gray.500" fontWeight="600">
               An issue occurred
             </Text>
           </Stack>
         </Center>
-      )
-    const customTag = { Image: Image as any }
+      </>
+    )
+
+  // Hack in case the image fails to load because it is a video
+  if (imageError && !videoError) {
     return (
-      <customTag.Image
+      <Box
+        as="video"
         src={image}
-        alt={defaultText}
-        onError={() => setImageError(true)}
-        layout={layout}
-        {...rest}
+        autoPlay
+        playsInline
+        muted
+        loop
+        controls={controls}
+        maxW="full"
+        maxH="full"
+        onError={() => setVideoError(true)}
       />
     )
   }
-  return <Box bgColor="brand.50" h="full" w="full" />
+
+  // display video
+  if (animation && !videoError) {
+    return (
+      <Box
+        as="video"
+        src={animation}
+        autoPlay
+        playsInline
+        muted
+        loop
+        controls={controls}
+        maxW="full"
+        maxH="full"
+        onError={() => setVideoError(true)}
+      />
+    )
+  }
+
+  // Use a basic image when the file is a blob or data
+  if (image.startsWith('blob:') || image.startsWith('data:'))
+    return (
+      <chakra.img
+        src={image}
+        alt={defaultText}
+        objectFit={fill ? 'cover' : 'scale-down'}
+        sizes={sizes}
+      />
+    )
+
+  return (
+    <Box position="relative" w="full" h="full">
+      <Image
+        src={image}
+        alt={defaultText}
+        onError={() => setImageError(true)}
+        layout="fill"
+        objectFit={fill ? 'cover' : 'contain'}
+        sizes={sizes}
+        unoptimized={unlockedContent?.mimetype === 'image/gif'}
+      />
+    </Box>
+  )
 }
 
 export default TokenMedia

@@ -1,7 +1,6 @@
 import {
   AspectRatio,
   Box,
-  Button,
   Center,
   Flex,
   FormControl,
@@ -9,7 +8,6 @@ import {
   Heading,
   Icon,
   IconButton,
-  Link,
   Menu,
   MenuButton,
   MenuItem,
@@ -22,59 +20,51 @@ import {
   Tabs,
   Text,
   Tooltip,
+  useToast,
 } from '@chakra-ui/react'
 import { BigNumber } from '@ethersproject/bignumber'
+import { formatError } from '@nft/hooks'
 import { FaInfoCircle } from '@react-icons/all-files/fa/FaInfoCircle'
 import { HiOutlineDotsHorizontal } from '@react-icons/all-files/hi/HiOutlineDotsHorizontal'
-import { HiOutlineExternalLink } from '@react-icons/all-files/hi/HiOutlineExternalLink'
-import { useWeb3React } from '@web3-react/core'
+import linkify from 'components/Linkify/Linkify'
+import useRefreshAsset from 'hooks/useRefreshAsset'
 import { NextPage } from 'next'
 import useTranslation from 'next-translate/useTranslation'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo, useState } from 'react'
-import invariant from 'ts-invariant'
-import Linkify from 'linkify-react';
 import BidList from '../../../components/Bid/BidList'
 import Head from '../../../components/Head'
 import HistoryList from '../../../components/History/HistoryList'
-import ChakraLink from '../../../components/Link/Link'
+import Image from '../../../components/Image/Image'
+import Link from '../../../components/Link/Link'
+import Loader from '../../../components/Loader'
 import SaleDetail from '../../../components/Sales/Detail'
 import TokenMedia from '../../../components/Token/Media'
 import TokenMetadata from '../../../components/Token/Metadata'
 import TraitList from '../../../components/Trait/TraitList'
+import { chains } from '../../../connectors'
 import {
   convertAuctionFull,
   convertBidFull,
   convertHistories,
   convertOwnership,
   convertSaleFull,
+  convertTraits,
   convertUser,
 } from '../../../convert'
 import environment from '../../../environment'
-import {
-  FetchAssetDocument,
-  FetchAssetIdFromTokenIdDocument,
-  FetchAssetIdFromTokenIdQuery,
-  FetchAssetIdFromTokenIdQueryVariables,
-  FetchAssetQuery,
-  useFetchAssetQuery,
-} from '../../../graphql'
+import { useFetchAssetQuery } from '../../../graphql'
+import useAccount from '../../../hooks/useAccount'
 import useBlockExplorer from '../../../hooks/useBlockExplorer'
+import useChainCurrencies from '../../../hooks/useChainCurrencies'
 import useEagerConnect from '../../../hooks/useEagerConnect'
 import useNow from '../../../hooks/useNow'
+import useRequiredQueryParamSingle from '../../../hooks/useRequiredQueryParamSingle'
 import useSigner from '../../../hooks/useSigner'
 import LargeLayout from '../../../layouts/large'
-import { wrapServerSideProps } from '../../../props'
 
 type Props = {
-  assetId: string
   now: string
-  currentAccount: string | null
-  meta: {
-    title: string
-    description: string
-    image: string
-  }
 }
 
 enum AssetTabs {
@@ -82,104 +72,54 @@ enum AssetTabs {
   history = 'history',
 }
 
-export const getServerSideProps = wrapServerSideProps<Props>(
-  environment.GRAPHQL_URL,
-  async (ctx, client) => {
-    const now = new Date()
-    const assetId = ctx.params?.id
-      ? Array.isArray(ctx.params.id)
-        ? ctx.params.id[0]
-        : ctx.params.id
-      : null
-    invariant(assetId, 'assetId is falsy')
-
-    // check if assetId is only a tokenId
-    if (!assetId.includes('-')) {
-      const { data, error } = await client.query<
-        FetchAssetIdFromTokenIdQuery,
-        FetchAssetIdFromTokenIdQueryVariables
-      >({
-        query: FetchAssetIdFromTokenIdDocument,
-        variables: { tokenId: assetId },
-      })
-      if (error) throw error
-      const fullAssetId = data.assets?.nodes.at(0)
-      if (!fullAssetId) return { notFound: true }
-      return {
-        redirect: {
-          permanent: true,
-          destination: `/tokens/${fullAssetId.id}`,
-        },
-      }
-    }
-
-    const { data, error } = await client.query<FetchAssetQuery>({
-      query: FetchAssetDocument,
-      variables: {
-        id: assetId,
-        now,
-        address: ctx.user.address || '',
-      },
-    })
-    if (error) throw error
-    if (!data.asset) return { notFound: true }
-    return {
-      props: {
-        now: now.toJSON(),
-        assetId,
-        currentAccount: ctx.user.address,
-        meta: {
-          title: data.asset.name,
-          description: data.asset.description,
-          image: data.asset.image,
-        },
-      },
-    }
-  },
-)
-
-const DetailPage: NextPage<Props> = ({
-  currentAccount,
-  assetId,
-  now: nowProp,
-  meta,
-}) => {
-  const ready = useEagerConnect()
+const DetailPage: NextPage<Props> = ({ now: nowProp }) => {
+  useEagerConnect()
   const signer = useSigner()
   const { t } = useTranslation('templates')
-  const { account } = useWeb3React()
-  const { query, replace } = useRouter()
-  const blockExplorer = useBlockExplorer(
-    environment.BLOCKCHAIN_EXPLORER_NAME,
-    environment.BLOCKCHAIN_EXPLORER_URL,
-  )
+  const toast = useToast()
+  const { address } = useAccount()
+  const { query } = useRouter()
   const [showPreview, setShowPreview] = useState(false)
+  const assetId = useRequiredQueryParamSingle('id')
 
   const date = useMemo(() => new Date(nowProp), [nowProp])
-  const { data, refetch } = useFetchAssetQuery({
+  const { data, refetch, loading } = useFetchAssetQuery({
     variables: {
       id: assetId,
       now: date,
-      address: (ready ? account?.toLowerCase() : currentAccount) || '',
+      address: address || '',
     },
+  })
+  const chainCurrency = useChainCurrencies(data?.asset?.collection.chainId, {
+    onlyERC20: true,
   })
 
   const asset = useMemo(() => data?.asset, [data])
-  const currencies = useMemo(() => data?.currencies?.nodes || [], [data])
+  const currencies = useMemo(
+    () => chainCurrency.data?.currencies?.nodes || [],
+    [chainCurrency],
+  )
 
-  const isOwner = useMemo(
-    () => BigNumber.from(asset?.owned.aggregates?.sum?.quantity || '0').gt('0'),
+  const blockExplorer = useBlockExplorer(asset?.collection.chainId)
+
+  const totalOwned = useMemo(
+    () => BigNumber.from(asset?.owned.aggregates?.sum?.quantity || '0'),
     [asset],
   )
+  const isOwner = useMemo(() => totalOwned.gt('0'), [totalOwned])
   const ownAllSupply = useMemo(
     () =>
-      BigNumber.from(asset?.owned.aggregates?.sum?.quantity || '0').gte(
+      totalOwned.gte(
         BigNumber.from(asset?.ownerships.aggregates?.sum?.quantity || '0'),
       ),
-    [asset],
+    [asset, totalOwned],
   )
   const isSingle = useMemo(
     () => asset?.collection.standard === 'ERC721',
+    [asset],
+  )
+  const chain = useMemo(
+    () => chains.find((x) => x.id === asset?.chainId),
     [asset],
   )
 
@@ -197,7 +137,11 @@ const DetailPage: NextPage<Props> = ({
   ]
 
   const traits = useMemo(
-    () => asset && asset.traits.nodes.length > 0 && asset.traits.nodes,
+    () =>
+      asset &&
+      asset.traits.nodes.length > 0 &&
+      asset.collection.traits &&
+      convertTraits(asset),
     [asset],
   )
 
@@ -226,8 +170,8 @@ const DetailPage: NextPage<Props> = ({
     return activeAuction
       ? activeAuction.offers.nodes.map(convertBidFull)
       : asset.bids.nodes.length > 0
-      ? asset.bids.nodes.map(convertBidFull)
-      : []
+        ? asset.bids.nodes.map(convertBidFull)
+        : []
   }, [activeAuction, asset])
 
   const directSales = useMemo(
@@ -266,13 +210,34 @@ const DetailPage: NextPage<Props> = ({
     await refetch()
   }, [refetch])
 
+  const refreshAsset = useRefreshAsset()
+  const refreshMetadata = useCallback(
+    async (assetId: string) => {
+      try {
+        await refreshAsset(assetId)
+        await refetch()
+        toast({
+          title: 'Successfully refreshed metadata',
+          status: 'success',
+        })
+      } catch (e) {
+        toast({
+          title: formatError(e),
+          status: 'error',
+        })
+      }
+    },
+    [refetch, refreshAsset, toast],
+  )
+
+  if (loading) return <Loader fullPage />
   if (!asset) return <></>
   return (
     <LargeLayout>
       <Head
-        title={meta.title}
-        description={meta.description}
-        image={meta.image}
+        title={asset.name}
+        description={asset.description}
+        image={asset.image}
       />
       <SimpleGrid spacing={6} columns={{ md: 2 }}>
         <AspectRatio ratio={1}>
@@ -282,23 +247,17 @@ const DetailPage: NextPage<Props> = ({
             p={12}
             bg="brand.50"
           >
-            <Box position="relative" h="full" w="full" zIndex={1}>
-              <Box
-                as={TokenMedia}
-                image={asset.image}
-                animationUrl={asset.animationUrl}
-                unlockedContent={
-                  showPreview ? undefined : asset.unlockedContent
-                }
-                defaultText={asset.name}
-                mx="auto"
-                maxH="full"
-                maxW="full"
-                objectFit="contain"
-                layout="fill"
-                controls
-              />
-            </Box>
+            <TokenMedia
+              imageUrl={asset.image}
+              animationUrl={asset.animationUrl}
+              unlockedContent={showPreview ? undefined : asset.unlockedContent}
+              defaultText={asset.name}
+              controls
+              sizes="
+              (min-width: 80em) 500px,
+              (min-width: 48em) 50vw,
+              100vw"
+            />
             {asset.hasUnlockableContent && (
               <Flex
                 w="full"
@@ -358,9 +317,25 @@ const DetailPage: NextPage<Props> = ({
         </AspectRatio>
         <Flex direction="column" my="auto" gap={8} p={{ base: 6, md: 0 }}>
           <Flex justify="space-between">
-            <Heading as="h1" variant="title" color="brand.black">
-              {asset.name}
-            </Heading>
+            <Stack spacing={1}>
+              {asset.collection.name && (
+                <Heading as="p" variant="heading1" color="gray.500">
+                  <Link
+                    href={`/collection/${asset.collection.chainId}/${asset.collection.address}`}
+                  >
+                    {asset.collection.name}
+                  </Link>
+                </Heading>
+              )}
+              <Heading
+                as="h1"
+                variant="title"
+                color="brand.black"
+                wordBreak="break-word"
+              >
+                {asset.name}
+              </Heading>
+            </Stack>
             <Flex direction="row" align="flex-start" gap={3}>
               <Menu>
                 <MenuButton
@@ -372,26 +347,30 @@ const DetailPage: NextPage<Props> = ({
                   icon={<Icon as={HiOutlineDotsHorizontal} w={5} h={5} />}
                 />
                 <MenuList>
-                  <ChakraLink
-                    href={`mailto:${
-                      environment.REPORT_EMAIL
-                    }?subject=${encodeURI(
-                      t('asset.detail.menu.report.subject'),
-                    )}&body=${encodeURI(
-                      t('asset.detail.menu.report.body', asset),
-                    )}`}
+                  <MenuItem onClick={() => refreshMetadata(asset.id)}>
+                    {t('asset.detail.menu.refresh-metadata')}
+                  </MenuItem>
+                  <Link
+                    href={`mailto:${environment.REPORT_EMAIL
+                      }?subject=${encodeURI(
+                        t('asset.detail.menu.report.subject'),
+                      )}&body=${encodeURI(
+                        t('asset.detail.menu.report.body', asset),
+                      )}`}
                     isExternal
                   >
                     <MenuItem>{t('asset.detail.menu.report.label')}</MenuItem>
-                  </ChakraLink>
+                  </Link>
                 </MenuList>
               </Menu>
             </Flex>
           </Flex>
 
           <TokenMetadata
+            assetId={asset.id}
             creator={creator}
             owners={owners}
+            numberOfOwners={asset.ownerships.totalCount}
             saleSupply={BigNumber.from(
               asset.sales.aggregates?.sum?.availableQuantity || 0,
             )}
@@ -399,13 +378,15 @@ const DetailPage: NextPage<Props> = ({
             totalSupply={BigNumber.from(
               asset.ownerships.aggregates?.sum?.quantity || '0',
             )}
+            isOpenCollection={asset.collection.mintType === 'PUBLIC'}
           />
           <SaleDetail
             assetId={asset.id}
+            chainId={asset.collection.chainId}
             blockExplorer={blockExplorer}
             currencies={currencies}
             signer={signer}
-            currentAccount={account?.toLowerCase()}
+            currentAccount={address}
             isSingle={isSingle}
             isHomepage={false}
             isOwner={isOwner}
@@ -418,7 +399,6 @@ const DetailPage: NextPage<Props> = ({
           />
         </Flex>
       </SimpleGrid>
-
       {asset.collectionAddress === environment.DRONE_COLLECTION_ADDRESS && (
         <Flex width="100%" my={{ base: 12, md: 20 }}>
           <Box width="100%">
@@ -437,102 +417,138 @@ const DetailPage: NextPage<Props> = ({
         </Flex>
       )}
 
-      <SimpleGrid spacing={6} columns={{ md: 2 }}>
-        <Box p={6}>
+      <Stack p={6} spacing={6}>
+        <Stack spacing={3}>
           <Heading as="h4" variant="heading2" color="brand.black">
             {t('asset.detail.description')}
           </Heading>
-          <Text as="p" variant="text-sm" color="gray.500" mt={3} style={{whiteSpace: 'pre-wrap'}}>
-            <Linkify>{asset.description}</Linkify>
-          </Text>
-
-          <Stack as="nav" mt={8} align="flex-start" spacing={3}>
-            <Button
-              as={Link}
-              href={assetExternalURL}
-              isExternal
-              variant="outline"
-              colorScheme="gray"
-              width={48}
-              justifyContent="space-between"
-              rightIcon={<HiOutlineExternalLink />}
+          <Stack borderRadius="2xl" p={3} borderWidth="1px" mt={4}>
+            <Text
+              as="p"
+              variant="text-sm"
+              color="gray.500"
+              whiteSpace="pre-wrap"
             >
-              <Text as="span" isTruncated>
-                {t('asset.detail.explorerLink', blockExplorer)}
-              </Text>
-            </Button>
-
-            <Button
-              as={Link}
-              href={asset.image}
-              isExternal
-              variant="outline"
-              colorScheme="gray"
-              width={48}
-              justifyContent="space-between"
-              rightIcon={<HiOutlineExternalLink />}
-            >
-              <Text as="span" isTruncated>
-                {t('asset.detail.ipfsLink')}
-              </Text>
-            </Button>
+              {linkify(asset.description)}
+            </Text>
           </Stack>
+        </Stack>
 
-          {traits && (
-            <Box pt={8}>
-              <Heading as="h4" variant="heading2" color="brand.black" pb={3}>
-                {t('asset.detail.traits')}
-              </Heading>
-              <TraitList traits={traits} onTraitSelected={async (trait) => {
-                await replace({pathname: '/explore', query: {'categories': trait}})
-              }} />
-            </Box>
-          )}
-        </Box>
-
-        <div>
-          <Tabs
-            isManual
-            defaultIndex={defaultIndex}
-            colorScheme="brand"
-            overflowX="auto"
-            overflowY="hidden"
+        <Stack spacing={3}>
+          <Heading as="h4" variant="heading2" color="brand.black">
+            {t('asset.detail.details.title')}
+          </Heading>
+          <Stack
+            as="nav"
+            borderRadius="2xl"
+            p={3}
+            borderWidth="1px"
+            mt={8}
+            align="flex-start"
+            spacing={3}
           >
-            <TabList>
-              {tabs.map((tab, index) => (
-                <ChakraLink key={index} href={tab.href} whiteSpace="nowrap">
-                  <Tab as="div">
-                    <Text as="span" variant="subtitle1">
-                      {tab.title}
-                    </Text>
-                  </Tab>
-                </ChakraLink>
-              ))}
-            </TabList>
-          </Tabs>
-          <Box h={96} overflowY="auto" py={6}>
-            {(!query.filter || query.filter === AssetTabs.bids) && (
-              <BidList
-                bids={bids}
-                signer={signer}
-                account={account?.toLowerCase()}
-                isSingle={isSingle}
-                blockExplorer={blockExplorer}
-                preventAcceptation={!isOwner || !!activeAuction}
-                onAccepted={refresh}
-                onCanceled={refresh}
+            <Flex alignItems="center">
+              <Text variant="text-sm" color="gray.500" mr={2}>
+                {t('asset.detail.details.chain')}
+              </Text>
+              <Image
+                src={`/chains/${asset.collection.chainId}.svg`}
+                alt={asset.collection.chainId.toString()}
+                width={20}
+                height={20}
               />
+              <Text variant="subtitle2" ml={1}>
+                {chain?.name}
+              </Text>
+            </Flex>
+
+            <Flex alignItems="center">
+              <Text variant="text-sm" color="gray.500" mr={2}>
+                {t('asset.detail.details.explorer')}
+              </Text>
+              <Link href={assetExternalURL} isExternal externalIcon>
+                <Text variant="subtitle2">{blockExplorer.name}</Text>
+              </Link>
+            </Flex>
+
+            <Flex alignItems="center">
+              <Text variant="text-sm" color="gray.500" mr={2}>
+                {t('asset.detail.details.media')}
+              </Text>
+              <Link href={asset.image} isExternal externalIcon>
+                <Text variant="subtitle2">IPFS</Text>
+              </Link>
+            </Flex>
+
+            {asset.tokenUri && (
+              <Flex alignItems="center">
+                <Text variant="text-sm" color="gray.500" mr={2}>
+                  {t('asset.detail.details.metadata')}
+                </Text>
+                <Link href={asset.tokenUri} isExternal externalIcon>
+                  <Text variant="subtitle2">IPFS</Text>
+                </Link>
+              </Flex>
             )}
-            {query.filter === AssetTabs.history && (
-              <HistoryList
-                histories={histories}
-                blockExplorer={blockExplorer}
-              />
-            )}
-          </Box>
-        </div>
-      </SimpleGrid>
-    </LargeLayout>
+          </Stack>
+        </Stack>
+
+        {traits && (
+          <Stack spacing={3}>
+            <Heading as="h4" variant="heading2" color="brand.black" pb={3}>
+              {t('asset.detail.traits')}
+            </Heading>
+              <Box borderRadius="2xl" p={3} borderWidth="1px">
+                <TraitList traits={traits} onTraitSelected={() => {return}} />
+              </Box>
+            </Stack>
+          )}
+        </Stack >
+
+  <div>
+    <Tabs
+      isManual
+      defaultIndex={defaultIndex}
+      colorScheme="brand"
+      overflowX="auto"
+      overflowY="hidden"
+    >
+      <TabList>
+        {tabs.map((tab, index) => (
+          <Link key={index} href={tab.href} whiteSpace="nowrap" mr={4}>
+            <Tab>
+              <Text as="span" variant="subtitle1">
+                {tab.title}
+              </Text>
+            </Tab>
+          </Link>
+        ))}
+      </TabList>
+    </Tabs>
+    <Box h={96} overflowY="auto" py={6}>
+      {(!query.filter || query.filter === AssetTabs.bids) && (
+        <BidList
+          bids={bids}
+          chainId={asset.collection.chainId}
+          signer={signer}
+          account={address}
+          isSingle={isSingle}
+          blockExplorer={blockExplorer}
+          preventAcceptation={!isOwner || !!activeAuction}
+          onAccepted={refresh}
+          onCanceled={refresh}
+          totalOwned={totalOwned}
+        />
+      )}
+      {query.filter === AssetTabs.history && (
+        <HistoryList
+          histories={histories}
+          blockExplorer={blockExplorer}
+        />
+      )}
+    </Box>
+  </div>
+    </LargeLayout >
   )
 }
 

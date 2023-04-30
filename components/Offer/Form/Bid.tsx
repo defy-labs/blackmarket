@@ -22,26 +22,24 @@ import {
 } from '@chakra-ui/react'
 import { Signer, TypedDataSigner } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
-import { EmailConnector } from '@nft/email-connector'
 import {
   formatDateDatetime,
   formatError,
   useBalance,
   useCreateOffer,
 } from '@nft/hooks'
+import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { FaInfoCircle } from '@react-icons/all-files/fa/FaInfoCircle'
-import { InjectedConnector } from '@web3-react/injected-connector'
-import { WalletConnectConnector } from '@web3-react/walletconnect-connector'
-import { WalletLinkConnector } from '@web3-react/walletlink-connector'
 import dayjs from 'dayjs'
 import useTranslation from 'next-translate/useTranslation'
-import { FC, useMemo } from 'react'
+import { FC, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
+import invariant from 'ts-invariant'
 import { BlockExplorer } from '../../../hooks/useBlockExplorer'
 import useParseBigNumber from '../../../hooks/useParseBigNumber'
+import ButtonWithNetworkSwitch from '../../Button/SwitchNetwork'
 import Image from '../../Image/Image'
 import CreateOfferModal from '../../Modal/CreateOffer'
-import LoginModal from '../../Modal/Login'
 import Select from '../../Select/Select'
 import Balance from '../../User/Balance'
 import Summary from '../Summary'
@@ -65,6 +63,7 @@ type Props = {
     name: string
   }[]
   assetId: string
+  chainId: number
   blockExplorer: BlockExplorer
   onCreated: (offerId: string) => void
   auctionId: string | undefined
@@ -72,13 +71,6 @@ type Props = {
   offerValidity: number
   feesPerTenThousand: number
   allowTopUp: boolean
-  login: {
-    email?: EmailConnector
-    injected?: InjectedConnector
-    walletConnect?: WalletConnectConnector
-    coinbase?: WalletLinkConnector
-    networkName: string
-  }
 } & (
   | {
       multiple: true
@@ -97,6 +89,7 @@ const OfferFormBid: FC<Props> = (props) => {
     account,
     currencies,
     assetId,
+    chainId,
     blockExplorer,
     onCreated,
     auctionId,
@@ -104,15 +97,10 @@ const OfferFormBid: FC<Props> = (props) => {
     offerValidity,
     feesPerTenThousand,
     allowTopUp,
-    login,
   } = props
   const [createOffer, { activeStep, transactionHash }] = useCreateOffer(signer)
   const toast = useToast()
-  const {
-    isOpen: loginIsOpen,
-    onOpen: loginOnOpen,
-    onClose: loginOnClose,
-  } = useDisclosure()
+  const { openConnectModal } = useConnectModal()
   const {
     isOpen: createOfferIsOpen,
     onOpen: createOfferOnOpen,
@@ -143,18 +131,29 @@ const OfferFormBid: FC<Props> = (props) => {
     },
   })
 
+  useEffect(() => {
+    const defaultCurrency = currencies[0]?.id
+    if (defaultCurrency) setValue('currencyId', defaultCurrency)
+    setValue('expiredAt', defaultExpirationValue)
+    setValue('auctionExpirationDate', defaultAuctionExpirationValue)
+  }, [
+    currencies,
+    defaultExpirationValue,
+    defaultAuctionExpirationValue,
+    setValue,
+  ])
+
   const price = watch('bid')
   const quantity = watch('quantity')
   const currencyId = watch('currencyId')
 
-  const currency = useMemo(() => {
-    const c = currencies.find((x) => x.id === currencyId)
-    if (!c) throw new Error("Can't find currency")
-    return c
-  }, [currencies, currencyId])
+  const currency = useMemo(
+    () => currencies.find((x) => x.id === currencyId),
+    [currencies, currencyId],
+  )
 
-  const [balance] = useBalance(account, currency.id)
-  const priceUnit = useParseBigNumber(price, currency.decimals)
+  const [balance] = useBalance(account, currency?.id || null)
+  const priceUnit = useParseBigNumber(price, currency?.decimals)
   const quantityBN = useParseBigNumber(quantity)
 
   const totalPrice = useMemo(() => {
@@ -179,6 +178,7 @@ const OfferFormBid: FC<Props> = (props) => {
 
   const onSubmit = handleSubmit(async ({ expiredAt }) => {
     if (!auctionId && !expiredAt) throw new Error('expiredAt is required')
+    invariant(currency)
     try {
       createOfferOnOpen()
       const id = await createOffer({
@@ -217,6 +217,7 @@ const OfferFormBid: FC<Props> = (props) => {
     [auctionId, register, t],
   )
 
+  if (!currency) return <></>
   return (
     <Stack as="form" onSubmit={onSubmit} w="full" spacing={8}>
       {currencies.length > 1 && (
@@ -283,6 +284,7 @@ const OfferFormBid: FC<Props> = (props) => {
               alt={currency.symbol}
               width={24}
               height={24}
+              objectFit="cover"
             />
           </InputRightElement>
         </InputGroup>
@@ -408,8 +410,9 @@ const OfferFormBid: FC<Props> = (props) => {
             currency={currency}
             allowTopUp={allowTopUp && ((price && !canBid) || balanceZero)}
           />
-          <Button
-            disabled={!canBid}
+          <ButtonWithNetworkSwitch
+            chainId={chainId}
+            isDisabled={!canBid}
             isLoading={isSubmitting}
             size="lg"
             type="submit"
@@ -417,17 +420,16 @@ const OfferFormBid: FC<Props> = (props) => {
             <Text as="span" isTruncated>
               {t('offer.form.bid.submit')}
             </Text>
-          </Button>
+          </ButtonWithNetworkSwitch>
         </>
       ) : (
-        <Button size="lg" type="button" onClick={loginOnOpen}>
+        <Button size="lg" type="button" onClick={openConnectModal}>
           <Text as="span" isTruncated>
             {t('offer.form.bid.submit')}
           </Text>
         </Button>
       )}
 
-      <LoginModal isOpen={loginIsOpen} onClose={loginOnClose} {...login} />
       <CreateOfferModal
         isOpen={createOfferIsOpen}
         onClose={createOfferOnClose}

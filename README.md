@@ -1,6 +1,6 @@
 # Marketplace template
 
-This repository is an example of an application running on the Liteflow infrastructure to showcase the uses of the infrastructure and/or be used as a starter kit to launch a product fast.
+This repository is an example of an application running on the [Liteflow](https://liteflow.com) infrastructure to showcase the uses of the infrastructure and/or be used as a starter kit to launch a product fast.
 
 ## Features included
 
@@ -74,7 +74,7 @@ The Marketplace template is based on the following tech stack
 - [Typescript](https://www.typescriptlang.org/)
 - [Liteflow](https://liteflow.com/)
 - [ChakraUI](https://chakra-ui.com/)
-- [Web3React](https://github.com/Uniswap/web3-react)
+- [Wagmi](https://wagmi.sh/)
 - [Next translate](https://github.com/aralroca/next-translate)
 
 ## Get started

@@ -12,6 +12,7 @@ import {
   MenuButton,
   MenuItem,
   MenuList,
+  Portal,
   Text,
 } from '@chakra-ui/react'
 import { HiChevronDown } from '@react-icons/all-files/hi/HiChevronDown'
@@ -19,7 +20,7 @@ import { HTMLAttributes, ReactElement, useMemo } from 'react'
 import { Control, Controller, FieldError } from 'react-hook-form'
 import Image from '../Image/Image'
 
-type IProps<T extends string> = HTMLAttributes<any> & {
+type IProps<T extends any> = HTMLAttributes<any> & {
   selectWidth?: string | number
   dropdownMaxHeight?: string | number
   label?: string
@@ -30,8 +31,8 @@ type IProps<T extends string> = HTMLAttributes<any> & {
     caption?: string
   }[]
   value?: T
-  onChange?(value: string | string[] | undefined): void
-  disabled?: boolean
+  onChange?(value: T | T[] | undefined): void
+  isDisabled?: boolean
   error?: FieldError | undefined
   name: string
   hint?: string
@@ -42,7 +43,7 @@ type IProps<T extends string> = HTMLAttributes<any> & {
   sortAlphabetically?: boolean
 }
 
-const Select = <T extends string>({
+const Select = <T extends any>({
   selectWidth,
   dropdownMaxHeight,
   label,
@@ -51,6 +52,7 @@ const Select = <T extends string>({
   placeholder,
   error,
   onChange,
+  isDisabled,
   name,
   hint,
   required,
@@ -107,17 +109,9 @@ const Select = <T extends string>({
               px={4}
               py={2}
               borderWidth="1px"
-              color={
-                props.disabled ? 'gray.500' : !error ? 'brand.black' : 'red.900'
-              }
-              bgColor={props.disabled ? 'gray.100' : 'white'}
+              color={error ? 'red.900' : 'brand.black'}
               w={selectWidth ? selectWidth : 'full'}
-              shadow={props.disabled ? undefined : 'sm'}
-              pointerEvents={props.disabled ? 'none' : undefined}
               borderColor={!error ? 'gray.200' : 'red.300'}
-              _hover={{
-                shadow: props.disabled ? undefined : 'md',
-              }}
               _focus={{
                 ring: 1,
                 ringColor: !error ? 'brand.500' : 'red.500',
@@ -125,6 +119,7 @@ const Select = <T extends string>({
                 outline: 'none',
               }}
               rightIcon={<Icon w={5} h={5} as={HiChevronDown} />}
+              isDisabled={isDisabled}
             >
               <Flex align="center" gap={2}>
                 {selectedChoice ? (
@@ -142,7 +137,8 @@ const Select = <T extends string>({
                           src={selectedChoice.image}
                           width={24}
                           height={24}
-                          alt={selectedChoice.value}
+                          alt={''}
+                          objectFit="cover"
                         />
                       </Box>
                     )}
@@ -162,62 +158,65 @@ const Select = <T extends string>({
                 )}
               </Flex>
             </MenuButton>
-            <MenuList
-              zIndex={10}
-              minW={0}
-              maxH={dropdownMaxHeight ? dropdownMaxHeight : 52}
-              overflowY="scroll"
-            >
-              {choicesList.map((choice, i) => (
-                <MenuItem
-                  onClick={() => {
-                    if (Array.isArray(choice.value))
-                      throw new Error(
-                        'not compatible with selection of multiple value',
-                      )
-                    hookChange && hookChange(choice.value)
-                    onChange && onChange(choice.value)
-                  }}
-                  key={i}
-                >
-                  <Flex align="center" gap={2}>
-                    {choice.image && (
-                      <Box
-                        h={6}
-                        w={6}
-                        overflow="hidden"
-                        rounded="full"
-                        borderWidth="1px"
-                        borderColor="gray.200"
+            <Portal>
+              <MenuList
+                zIndex="popover"
+                minW={0}
+                maxH={dropdownMaxHeight ? dropdownMaxHeight : 52}
+                overflowY="scroll"
+              >
+                {choicesList.map((choice, i) => (
+                  <MenuItem
+                    onClick={() => {
+                      if (Array.isArray(choice.value))
+                        throw new Error(
+                          'not compatible with selection of multiple value',
+                        )
+                      hookChange && hookChange(choice.value)
+                      onChange && onChange(choice.value)
+                    }}
+                    key={i}
+                  >
+                    <Flex align="center" gap={2}>
+                      {choice.image && (
+                        <Box
+                          h={6}
+                          w={6}
+                          overflow="hidden"
+                          rounded="full"
+                          borderWidth="1px"
+                          borderColor="gray.200"
+                        >
+                          <Image
+                            src={choice.image}
+                            width={24}
+                            height={24}
+                            alt={''}
+                            objectFit="cover"
+                          />
+                        </Box>
+                      )}
+                      <Text
+                        as="span"
+                        fontSize="sm"
+                        fontWeight={
+                          selectedChoice?.value === choice.value
+                            ? 'semibold'
+                            : 'normal'
+                        }
                       >
-                        <Image
-                          src={choice.image}
-                          width={24}
-                          height={24}
-                          alt={choice.value}
-                        />
-                      </Box>
-                    )}
-                    <Text
-                      as="span"
-                      fontSize="sm"
-                      fontWeight={
-                        selectedChoice?.value === choice.value
-                          ? 'semibold'
-                          : 'normal'
-                      }
-                    >
-                      {choice.label}
-                    </Text>
-                    {choice.caption && (
-                      <Text as="span" variant="text-sm" color="gray.500">
-                        {choice.caption}
+                        {choice.label}
                       </Text>
-                    )}
-                  </Flex>
-                </MenuItem>
-              ))}
-            </MenuList>
+                      {choice.caption && (
+                        <Text as="span" variant="text-sm" color="gray.500">
+                          {choice.caption}
+                        </Text>
+                      )}
+                    </Flex>
+                  </MenuItem>
+                ))}
+              </MenuList>
+            </Portal>
           </Menu>
         </Box>
       </Flex>

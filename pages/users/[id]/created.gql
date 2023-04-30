@@ -1,5 +1,6 @@
 query FetchCreatedAssets(
   $address: Address!
+  $currentAddress: Address!
   $now: Datetime!
   $limit: Int!
   $offset: Int!
@@ -21,6 +22,7 @@ query FetchCreatedAssets(
   }
   onSale: assets(
     filter: {
+      ownershipsExist: true
       or: [
         {
           sales: {

@@ -9,7 +9,14 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
  */
 const nextConfig = {
   images: {
-    domains: [process.env.PINATA_GATEWAY || '', 's3.ap-southeast-2.amazonaws.com', 'cdn.prod.defylabs.xyz', 'cdn.dev.defylabs.xyz', 'defydisrupt.mypinata.cloud'],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
   webpack: (config, options) => {
     if (!options.isServer) {

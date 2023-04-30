@@ -25,6 +25,34 @@
           "title": "Cancel Offer"
         }
       }
+    },
+    "modal": {
+      "accept": {
+        "title": "Accept a bid",
+        "description": "Choose the number of editions you would like to sell to the bidder",
+        "submit": "Accept bid",
+        "quantity": {
+          "label": "Quantity",
+          "suffix": "Edition",
+          "placeholder": "Enter quantity",
+          "available": "{{ count }} editions requested by the bidder"
+        },
+        "validation": {
+          "required": "This field is required.",
+          "in-range": "This field must be between 1 and {{ max }}.",
+          "integer": "This field must be an integer."
+        },
+        "owned": {
+          "label": "You owns",
+          "unit": "{{count}} edition(s)"
+        }
+      }
+    }
+  },
+  "collection": {
+    "listItem": {
+      "allTime": "All-time",
+      "floor": "Floor: {{price}}"
     }
   },
   "countdown": {
@@ -34,7 +62,69 @@
     "sec": "{{value}}s"
   },
   "dropzone": {
-    "required": "This field is required."
+    "required": "This field is required.",
+    "gifTooLarge": "GIF file is too large. Max size is 5MB.",
+    "gifLimit": "GIF. Max 5 MB."
+  },
+  "filters": {
+    "nav": {
+      "title": "Filters",
+      "clear": "Clear filters"
+    },
+    "collections": {
+      "chains": {
+        "label": "Chain"
+      }
+    },
+    "assets": {
+      "submit": "Apply",
+      "clear": "Clear All",
+      "chains": {
+        "label": "Chain"
+      },
+      "currency": {
+        "label": "Price range",
+        "placeholder": "Select a currency"
+      },
+      "min-price": {
+        "placeholder": "Min",
+        "validation": {
+          "positive": "Min price must be greater than 0.",
+          "decimals": "Min price supports a maximum of {{ nbDecimals }} decimals."
+        }
+      },
+      "max-price": {
+        "placeholder": "Max",
+        "validation": {
+          "positive": "Max price must be greater than 0.",
+          "decimals": "Max price supports a maximum of {{ nbDecimals }} decimals."
+        }
+      },
+      "offers": {
+        "label": "Status",
+        "values": {
+          "all": "All",
+          "fixed": "Buy now",
+          "auction": "Timed auction"
+        }
+      },
+      "categories": {
+        "label": "Categories"
+      },
+      "collections": {
+        "label": "Collections",
+        "search": {
+          "placeholder": "Search by collections"
+        }
+      },
+      "properties": {
+        "label": "Properties",
+        "labelWithCollection": "Collection & properties",
+        "search": {
+          "placeholder": "Filter properties"
+        }
+      }
+    }
   },
   "footer": {
     "copyright": "© {{date}} {{name}} All rights reserved."
@@ -243,10 +333,7 @@
     "login": {
       "title": "Sign in with your wallet",
       "description": "Connect with one of the following options.",
-      "alternative": "Or sign in with",
-      "errors": {
-        "wrong-network": "You are connected to the wrong network. Please switch to the {{networkName}} network."
-      }
+      "alternative": "Or sign in with"
     }
   },
   "back": "Go back",
@@ -257,6 +344,8 @@
     "create": "Create",
     "search": "Search",
     "sign-in": "Sign in",
+    "chat": "Messages",
+    "signing-in": "Signing in...",
     "notifications": "Notifications",
     "activity": {
       "title": "Activity",
@@ -451,8 +540,11 @@
         "view": "View Collectible"
       },
       "card-footer": {
-        "highest-bid": "Highest bid:",
-        "place-bid": "Place a bid"
+        "highest-bid": "Bid",
+        "place-bid": "Place a bid",
+        "no-bids": "No bids yet",
+        "view": "View my NFT",
+        "ongoing-auction": "Ongoing Auction"
       },
       "form": {
         "submit": "Create Offer",
@@ -515,7 +607,8 @@
       "card-footer": {
         "price": "Price",
         "from": "From",
-        "purchase": "Purchase",
+        "purchase": "Buy Now",
+        "view": "View my NFT",
         "offers": "{{count}} offers available"
       },
       "form": {
@@ -594,7 +687,8 @@
       },
       "card-footer": {
         "open": "Open for bids",
-        "place-bid": "Place a bid"
+        "place-bid": "Place a bid",
+        "view": "View my NFT"
       },
       "info": {
         "owner": "You own this Collectible",
@@ -621,7 +715,7 @@
         "file": {
           "label": "Upload file",
           "heading": "Drag & drop file or",
-          "hint": "JPG, PNG, GIF, WEBP, WEBM or MP4. Max 100 MB.",
+          "hint": "JPG, PNG, WEBP, WEBM or MP4. Max 100 MB.",
           "file": {
             "chose": "Choose File",
             "replace": "Replace File"
@@ -630,7 +724,7 @@
         "preview": {
           "label": "Upload preview",
           "heading": "Drag & drop file or",
-          "hint": "JPG, PNG, GIF or WEBP. Max 100 MB.",
+          "hint": "JPG, PNG or WEBP. Max 100 MB.",
           "file": {
             "chose": "Choose File",
             "replace": "Replace File"
@@ -684,6 +778,7 @@
     },
     "metadata": {
       "creator": "Creator",
+      "minted_by": "Minted by",
       "owner": "Owner",
       "owners": "Owners",
       "edition": "Edition",
@@ -694,7 +789,10 @@
     }
   },
   "traits": {
-    "rarity": "{{value}} rarity"
+    "percent": "{{value}}%"
+  },
+  "truncate": {
+    "show-more": "Show more"
   },
   "user": {
     "balance": {
@@ -725,7 +823,7 @@
         "image": {
           "label": "Upload a Profile Image",
           "heading": "Drag & drop file or",
-          "hint": "Recommended size: 400x400px. JPG, PNG, GIF OR WEBP. Max file size 10 MB.",
+          "hint": "Recommended size: 400x400px. JPG, PNG OR WEBP. Max file size 10 MB.",
           "file": {
             "chose": "Choose File",
             "replace": "Replace File"
@@ -734,7 +832,7 @@
         "cover": {
           "label": "Upload a Cover Image",
           "heading": "Drag & drop file or",
-          "hint": "Recommended size: 1128x200px. JPG, PNG, GIF OR WEBP. Max file size 10 MB.",
+          "hint": "Recommended size: 1128x200px. JPG, PNG OR WEBP. Max file size 10 MB.",
           "file": {
             "chose": "Choose File",
             "replace": "Replace File"
@@ -776,26 +874,13 @@
     },
     "connectors": {
       "email": {
-        "form": {
-          "submit": "Sign in",
-          "validation": {
-            "required": "This field is required",
-            "invalid": "Email is not valid"
-          },
-          "email": {
-            "label": "Email address"
-          }
-        }
+        "label": "Sign in with email"
       }
     },
     "wallet": {
       "deposit": {
         "title": "Deposit tokens",
         "description": "You can deposit tokens and transfer funds at anytime on the following address"
-      },
-      "banner": {
-        "title": "Use {{networkName}} network",
-        "description": "Ensure the network you choose to deposit tokens is the {{networkName}} network, or assets may be lost."
       },
       "balances": "Balances"
     },

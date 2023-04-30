@@ -9,6 +9,7 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "next lint && prettier \"**/*.{js,ts,tsx,json,md}\" --check",
+    "lint-fix": "next lint && prettier \"**/*.{js,ts,tsx,json,md}\" -w",
     "analyze": "ANALYZE=true npm run build",
     "start": "next start",
     "graphql-codegen": "graphql-codegen --overwrite --require dotenv/config"

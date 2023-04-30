@@ -23,7 +23,7 @@ const TraitList: FC<TraitListProps> = ({ traits, onTraitSelected }) => {
           rounded="xl"
           border="1px"
           borderColor="gray.200"
-          style={{cursor: 'pointer'}}
+          style={{ cursor: 'pointer' }}
           p={3}
           onClick={() => {
             onTraitSelected(`${trait.type} - ${trait.value}`)

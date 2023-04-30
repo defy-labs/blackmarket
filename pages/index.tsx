@@ -36,7 +36,14 @@ import {
   convertUser,
 } from '../convert'
 import environment from '../environment'
-import { FetchDefaultAssetIdsDocument, FetchDefaultAssetIdsQuery, FetchHomePageDocument, FetchHomePageQuery, useFetchDefaultAssetIdsQuery, useFetchHomePageQuery } from '../graphql'
+import {
+  FetchDefaultAssetIdsDocument,
+  FetchDefaultAssetIdsQuery,
+  FetchHomePageDocument,
+  FetchHomePageQuery,
+  useFetchDefaultAssetIdsQuery,
+  useFetchHomePageQuery,
+} from '../graphql'
 import useAccount from '../hooks/useAccount'
 import useOrderById from '../hooks/useOrderById'
 import useSigner from '../hooks/useSigner'
@@ -107,10 +114,7 @@ export const getServerSideProps = wrapServerSideProps<Props>(
   },
 )
 
-const HomePage: NextPage<Props> = ({
-  featuredCollections,
-  now,
-}) => {
+const HomePage: NextPage<Props> = ({ featuredCollections, now }) => {
   const signer = useSigner()
   const { t } = useTranslation('templates')
   const { address } = useAccount()
@@ -164,10 +168,7 @@ const HomePage: NextPage<Props> = ({
     })
   }, [error, t, toast])
 
-  const featured = useOrderById(
-    [],
-    data?.featured?.nodes,
-  )
+  const featured = useOrderById([], data?.featured?.nodes)
   const assets = useOrderById(assetIds, data?.assets?.nodes)
   const currencies = useMemo(() => data?.currencies?.nodes || [], [data])
   const auctions = useMemo(() => data?.auctions?.nodes || [], [data])

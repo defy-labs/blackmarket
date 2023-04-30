@@ -170,8 +170,8 @@ const DetailPage: NextPage<Props> = ({ now: nowProp }) => {
     return activeAuction
       ? activeAuction.offers.nodes.map(convertBidFull)
       : asset.bids.nodes.length > 0
-        ? asset.bids.nodes.map(convertBidFull)
-        : []
+      ? asset.bids.nodes.map(convertBidFull)
+      : []
   }, [activeAuction, asset])
 
   const directSales = useMemo(
@@ -351,12 +351,13 @@ const DetailPage: NextPage<Props> = ({ now: nowProp }) => {
                     {t('asset.detail.menu.refresh-metadata')}
                   </MenuItem>
                   <Link
-                    href={`mailto:${environment.REPORT_EMAIL
-                      }?subject=${encodeURI(
-                        t('asset.detail.menu.report.subject'),
-                      )}&body=${encodeURI(
-                        t('asset.detail.menu.report.body', asset),
-                      )}`}
+                    href={`mailto:${
+                      environment.REPORT_EMAIL
+                    }?subject=${encodeURI(
+                      t('asset.detail.menu.report.subject'),
+                    )}&body=${encodeURI(
+                      t('asset.detail.menu.report.body', asset),
+                    )}`}
                     isExternal
                   >
                     <MenuItem>{t('asset.detail.menu.report.label')}</MenuItem>
@@ -498,57 +499,59 @@ const DetailPage: NextPage<Props> = ({ now: nowProp }) => {
             <Heading as="h4" variant="heading2" color="brand.black" pb={3}>
               {t('asset.detail.traits')}
             </Heading>
-              <Box borderRadius="2xl" p={3} borderWidth="1px">
-                <TraitList traits={traits} onTraitSelected={() => {return}} />
-              </Box>
-            </Stack>
-          )}
-        </Stack >
+            <Box borderRadius="2xl" p={3} borderWidth="1px">
+              <TraitList
+                traits={traits}
+                onTraitSelected={() => {
+                  return
+                }}
+              />
+            </Box>
+          </Stack>
+        )}
+      </Stack>
 
-  <div>
-    <Tabs
-      isManual
-      defaultIndex={defaultIndex}
-      colorScheme="brand"
-      overflowX="auto"
-      overflowY="hidden"
-    >
-      <TabList>
-        {tabs.map((tab, index) => (
-          <Link key={index} href={tab.href} whiteSpace="nowrap" mr={4}>
-            <Tab>
-              <Text as="span" variant="subtitle1">
-                {tab.title}
-              </Text>
-            </Tab>
-          </Link>
-        ))}
-      </TabList>
-    </Tabs>
-    <Box h={96} overflowY="auto" py={6}>
-      {(!query.filter || query.filter === AssetTabs.bids) && (
-        <BidList
-          bids={bids}
-          chainId={asset.collection.chainId}
-          signer={signer}
-          account={address}
-          isSingle={isSingle}
-          blockExplorer={blockExplorer}
-          preventAcceptation={!isOwner || !!activeAuction}
-          onAccepted={refresh}
-          onCanceled={refresh}
-          totalOwned={totalOwned}
-        />
-      )}
-      {query.filter === AssetTabs.history && (
-        <HistoryList
-          histories={histories}
-          blockExplorer={blockExplorer}
-        />
-      )}
-    </Box>
-  </div>
-    </LargeLayout >
+      <div>
+        <Tabs
+          isManual
+          defaultIndex={defaultIndex}
+          colorScheme="brand"
+          overflowX="auto"
+          overflowY="hidden"
+        >
+          <TabList>
+            {tabs.map((tab, index) => (
+              <Link key={index} href={tab.href} whiteSpace="nowrap" mr={4}>
+                <Tab>
+                  <Text as="span" variant="subtitle1">
+                    {tab.title}
+                  </Text>
+                </Tab>
+              </Link>
+            ))}
+          </TabList>
+        </Tabs>
+        <Box h={96} overflowY="auto" py={6}>
+          {(!query.filter || query.filter === AssetTabs.bids) && (
+            <BidList
+              bids={bids}
+              chainId={asset.collection.chainId}
+              signer={signer}
+              account={address}
+              isSingle={isSingle}
+              blockExplorer={blockExplorer}
+              preventAcceptation={!isOwner || !!activeAuction}
+              onAccepted={refresh}
+              onCanceled={refresh}
+              totalOwned={totalOwned}
+            />
+          )}
+          {query.filter === AssetTabs.history && (
+            <HistoryList histories={histories} blockExplorer={blockExplorer} />
+          )}
+        </Box>
+      </div>
+    </LargeLayout>
   )
 }
 

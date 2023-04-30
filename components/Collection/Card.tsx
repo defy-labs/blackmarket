@@ -1,8 +1,8 @@
 import { Flex, Heading } from '@chakra-ui/react'
+import Image from 'next/image'
 import { VFC } from 'react'
 import { COLORS } from 'styles/theme'
 import Link from '../Link/Link'
-import Image from 'next/image'
 
 export type Props = {
   image: string

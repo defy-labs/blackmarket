@@ -1,7 +1,14 @@
 import { ApolloProvider } from '@apollo/client'
 import Bugsnag from '@bugsnag/js'
 import BugsnagPluginReact from '@bugsnag/plugin-react'
-import { Box, Button, ChakraProvider, Flex, Link, useToast } from '@chakra-ui/react'
+import {
+  Box,
+  Button,
+  ChakraProvider,
+  Flex,
+  Link,
+  useToast,
+} from '@chakra-ui/react'
 import { LiteflowProvider } from '@nft/hooks'
 import { lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css'
@@ -20,6 +27,7 @@ import React, {
   useMemo,
 } from 'react'
 import { Cookies, CookiesProvider } from 'react-cookie'
+import { Helmet } from 'react-helmet'
 import {
   useAccount as useWagmiAccount,
   useDisconnect,
@@ -35,7 +43,6 @@ import environment from '../environment'
 import useAccount, { COOKIES, COOKIE_JWT_TOKEN } from '../hooks/useAccount'
 import useSigner from '../hooks/useSigner'
 import { theme } from '../styles/theme'
-import { Helmet } from 'react-helmet'
 require('dayjs/locale/ja')
 require('dayjs/locale/zh-cn')
 require('dayjs/locale/es-mx')

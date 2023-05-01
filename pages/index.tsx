@@ -224,7 +224,7 @@ const HomePage: NextPage<Props> = ({ featuredCollections, now }) => {
         </header>
       )}
 
-      {featuredCollections.length > 0 && (
+      {featuredCollections && featuredCollections.length > 0 && (
         <Stack spacing={6} mt={12}>
           <Flex flexWrap="wrap" justify="space-between" gap={4}>
             <Heading as="h2" variant="subtitle" color="brand.black">

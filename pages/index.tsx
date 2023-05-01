@@ -9,7 +9,6 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import { HiArrowNarrowRight } from '@react-icons/all-files/hi/HiArrowNarrowRight'
-import { useWeb3React } from '@web3-react/core'
 import CollectionCard from 'components/Collection/Card'
 import {
   ContentfulHomePageDocument,
@@ -18,8 +17,10 @@ import {
 } from 'contentful-graphql'
 import { NextPage } from 'next'
 import useTranslation from 'next-translate/useTranslation'
+import { wrapServerSideProps } from 'props'
 import { useCallback, useEffect, useMemo } from 'react'
 import Link from '../components/Link/Link'
+import Loader from '../components/Loader'
 import Slider from '../components/Slider/Slider'
 import TokenCard from '../components/Token/Card'
 import TokenHeader from '../components/Token/Header'
@@ -40,14 +41,13 @@ import {
   FetchDefaultAssetIdsQuery,
   FetchHomePageDocument,
   FetchHomePageQuery,
+  useFetchDefaultAssetIdsQuery,
   useFetchHomePageQuery,
 } from '../graphql'
-import useBlockExplorer from '../hooks/useBlockExplorer'
-import useEagerConnect from '../hooks/useEagerConnect'
+import useAccount from '../hooks/useAccount'
 import useOrderById from '../hooks/useOrderById'
 import useSigner from '../hooks/useSigner'
 import LargeLayout from '../layouts/large'
-import { wrapServerSideProps } from '../props'
 
 type Props = {
   now: string
@@ -115,26 +115,51 @@ export const getServerSideProps = wrapServerSideProps<Props>(
 )
 
 const HomePage: NextPage<Props> = ({
-  currentAccount,
-  featuredTokens,
   featuredCollections,
-  limit,
+  featuredTokens,
   now,
-  tokens,
 }) => {
-  const ready = useEagerConnect()
   const signer = useSigner()
   const { t } = useTranslation('templates')
-  const { account } = useWeb3React()
+  const { address } = useAccount()
   const toast = useToast()
   const date = useMemo(() => new Date(now), [now])
-  const { data, refetch, error } = useFetchHomePageQuery({
+  const { data: tokensToRender } = useFetchDefaultAssetIdsQuery({
+    variables: { limit: environment.PAGINATION_LIMIT },
+    skip: !!environment.HOME_TOKENS,
+  })
+
+  const assetIds = useMemo(() => {
+    if (environment.HOME_TOKENS) {
+      // Pseudo randomize the array based on the date's seconds
+      const tokens = [...environment.HOME_TOKENS]
+
+      const seed = date.getTime() / 1000 // convert to seconds as date is currently truncated to the second
+      const randomTokens = []
+      while (
+        tokens.length &&
+        randomTokens.length < environment.PAGINATION_LIMIT
+      ) {
+        // generate random based on seed and length of the remaining tokens array
+        // It will change when seed changes (basically every request) and also on each iteration of the loop as length of tokens changes
+        const randomIndex = seed % tokens.length
+        // remove the element from tokens
+        const element = tokens.splice(randomIndex, 1)
+        // push the element into the returned array in order
+        randomTokens.push(...element)
+      }
+      return randomTokens
+    }
+    return (tokensToRender?.assets?.nodes || []).map((x) => x.id)
+  }, [tokensToRender, date])
+
+  const { data, refetch, error, loading } = useFetchHomePageQuery({
     variables: {
       featuredIds: featuredTokens,
       now: date,
-      limit,
-      assetIds: tokens,
-      address: (ready ? account?.toLowerCase() : currentAccount) || '',
+      limit: environment.PAGINATION_LIMIT,
+      assetIds: assetIds,
+      address: address || '',
     },
   })
 
@@ -147,13 +172,8 @@ const HomePage: NextPage<Props> = ({
     })
   }, [error, t, toast])
 
-  const blockExplorer = useBlockExplorer(
-    environment.BLOCKCHAIN_EXPLORER_NAME,
-    environment.BLOCKCHAIN_EXPLORER_URL,
-  )
-
-  const featured = useOrderById(featuredTokens, data?.featured?.nodes)
-  const assets = useOrderById(tokens, data?.assets?.nodes)
+  const featured = useOrderById(featuredTokens ?? [], data?.featured?.nodes)
+  const assets = useOrderById(assetIds, data?.assets?.nodes)
   const currencies = useMemo(() => data?.currencies?.nodes || [], [data])
   const auctions = useMemo(() => data?.auctions?.nodes || [], [data])
 
@@ -166,7 +186,6 @@ const HomePage: NextPage<Props> = ({
       featured?.map((asset) => (
         <TokenHeader
           key={asset.id}
-          blockExplorer={blockExplorer}
           asset={convertAssetWithSupplies(asset)}
           currencies={currencies}
           auction={
@@ -182,15 +201,18 @@ const HomePage: NextPage<Props> = ({
           sales={asset.sales.nodes.map(convertSaleFull)}
           creator={convertUser(asset.creator, asset.creator.address)}
           owners={asset.ownerships.nodes.map(convertOwnership)}
+          numberOfOwners={asset.ownerships.totalCount}
           isHomepage={true}
           signer={signer}
-          currentAccount={account?.toLowerCase()}
+          currentAccount={address}
           onOfferCanceled={reloadInfo}
           onAuctionAccepted={reloadInfo}
         />
       )),
-    [featured, blockExplorer, account, signer, reloadInfo, currencies],
+    [featured, address, signer, reloadInfo, currencies],
   )
+
+  if (loading) return <Loader fullPage />
 
   return (
     <LargeLayout>
@@ -206,7 +228,7 @@ const HomePage: NextPage<Props> = ({
         </header>
       )}
 
-      {featuredCollections.length > 0 && (
+      {featuredCollections && featuredCollections.length > 0 && (
         <Stack spacing={6} mt={12}>
           <Flex flexWrap="wrap" justify="space-between" gap={4}>
             <Heading as="h2" variant="subtitle" color="brand.black">
@@ -248,6 +270,7 @@ const HomePage: NextPage<Props> = ({
                   lg: '25%',
                 }}
                 p="10px"
+                overflow="hidden"
               >
                 <TokenCard
                   asset={convertAsset(x.asset)}
@@ -287,7 +310,7 @@ const HomePage: NextPage<Props> = ({
           </Flex>
           <SimpleGrid spacing={6} columns={{ sm: 2, md: 3, lg: 4 }}>
             {assets.map((x, i) => (
-              <Flex key={i} justify="center">
+              <Flex key={i} justify="center" overflow="hidden">
                 <TokenCard
                   asset={convertAsset(x)}
                   creator={convertUser(x.creator, x.creator.address)}

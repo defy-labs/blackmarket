@@ -15,6 +15,7 @@ query FetchUserTradeSold(
   }
   onSale: assets(
     filter: {
+      ownershipsExist: true
       or: [
         {
           sales: {
@@ -65,8 +66,10 @@ query FetchUserTradeSold(
         symbol
       }
       asset {
+        id
         name
         image
+        chainId
       }
     }
   }

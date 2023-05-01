@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Flex,
+  Icon,
   Stack,
   Table,
   TableContainer,
@@ -12,27 +13,21 @@ import {
   Th,
   Thead,
   Tr,
-  useDisclosure,
   useToast,
 } from '@chakra-ui/react'
-import {
-  CancelOfferStep,
-  dateFromNow,
-  formatError,
-  useCancelOffer,
-  useIsLoggedIn,
-} from '@nft/hooks'
-import { useWeb3React } from '@web3-react/core'
+import { dateFromNow, formatError, useIsLoggedIn } from '@nft/hooks'
+import { HiOutlineSearch } from '@react-icons/all-files/hi/HiOutlineSearch'
 import { NextPage } from 'next'
 import Trans from 'next-translate/Trans'
 import useTranslation from 'next-translate/useTranslation'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
-import invariant from 'ts-invariant'
+import CancelOfferButton from '../../../../components/Button/CancelOffer'
+import Empty from '../../../../components/Empty/Empty'
 import Head from '../../../../components/Head'
 import Image from '../../../../components/Image/Image'
 import Link from '../../../../components/Link/Link'
-import CancelOfferModal from '../../../../components/Modal/CancelOffer'
+import Loader from '../../../../components/Loader'
 import Pagination from '../../../../components/Pagination/Pagination'
 import Price from '../../../../components/Price/Price'
 import UserProfileTemplate from '../../../../components/Profile'
@@ -40,99 +35,37 @@ import Select from '../../../../components/Select/Select'
 import { convertBidFull, convertFullUser } from '../../../../convert'
 import environment from '../../../../environment'
 import {
-  FetchUserBidsPlacedDocument,
-  FetchUserBidsPlacedQuery,
   OfferOpenBuysOrderBy,
   useFetchUserBidsPlacedQuery,
 } from '../../../../graphql'
-import useBlockExplorer from '../../../../hooks/useBlockExplorer'
+import useAccount from '../../../../hooks/useAccount'
 import useEagerConnect from '../../../../hooks/useEagerConnect'
+import useOrderByQuery from '../../../../hooks/useOrderByQuery'
 import usePaginate from '../../../../hooks/usePaginate'
+import usePaginateQuery from '../../../../hooks/usePaginateQuery'
+import useRequiredQueryParamSingle from '../../../../hooks/useRequiredQueryParamSingle'
 import useSigner from '../../../../hooks/useSigner'
 import LargeLayout from '../../../../layouts/large'
-import { getLimit, getOffset, getOrder, getPage } from '../../../../params'
-import { wrapServerSideProps } from '../../../../props'
 
 type Props = {
-  userAddress: string
   now: string
-  page: number
-  limit: number
-  offset: number
-  orderBy: OfferOpenBuysOrderBy
-  meta: {
-    title: string
-    description: string
-    image: string
-  }
 }
 
-export const getServerSideProps = wrapServerSideProps<Props>(
-  environment.GRAPHQL_URL,
-  async (context, client) => {
-    const userAddress = context.params?.id
-      ? Array.isArray(context.params.id)
-        ? context.params.id[0]?.toLowerCase()
-        : context.params.id.toLowerCase()
-      : null
-    invariant(userAddress, 'userAddress is falsy')
-    const limit = getLimit(context, environment.PAGINATION_LIMIT)
-    const page = getPage(context)
-    const orderBy = getOrder<OfferOpenBuysOrderBy>(context, 'CREATED_AT_DESC')
-    const offset = getOffset(context, environment.PAGINATION_LIMIT)
-    const now = new Date()
-    const { data, error } = await client.query<FetchUserBidsPlacedQuery>({
-      query: FetchUserBidsPlacedDocument,
-      variables: {
-        limit,
-        offset,
-        orderBy,
-        address: userAddress,
-        now,
-      },
-    })
-    if (error) throw error
-    if (!data) throw new Error('data is falsy')
-    return {
-      props: {
-        page,
-        limit,
-        offset,
-        orderBy,
-        userAddress,
-        now: now.toJSON(),
-        meta: {
-          title: data.account?.name || userAddress,
-          description: data.account?.description || '',
-          image: data.account?.image || '',
-        },
-      },
-    }
-  },
-)
-
-const BidPlacedPage: NextPage<Props> = ({
-  meta,
-  now,
-  limit,
-  page,
-  offset,
-  orderBy,
-  userAddress,
-}) => {
+const BidPlacedPage: NextPage<Props> = ({ now }) => {
   useEagerConnect()
   const signer = useSigner()
   const { t } = useTranslation('templates')
   const { replace, pathname, query } = useRouter()
-  const { account } = useWeb3React()
+  const { address } = useAccount()
+  const { limit, offset, page } = usePaginateQuery()
+  const orderBy = useOrderByQuery<OfferOpenBuysOrderBy>('CREATED_AT_DESC')
   const [changePage, changeLimit] = usePaginate()
-  const [cancel, { activeStep, transactionHash }] = useCancelOffer(signer)
   const toast = useToast()
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const userAddress = useRequiredQueryParamSingle('id')
   const ownerLoggedIn = useIsLoggedIn(userAddress)
 
   const date = useMemo(() => new Date(now), [now])
-  const { data, refetch } = useFetchUserBidsPlacedQuery({
+  const { data, refetch, loading } = useFetchUserBidsPlacedQuery({
     variables: {
       address: userAddress,
       limit,
@@ -156,32 +89,13 @@ const BidPlacedPage: NextPage<Props> = ({
     [data],
   )
 
-  const blockExplorer = useBlockExplorer(
-    environment.BLOCKCHAIN_EXPLORER_NAME,
-    environment.BLOCKCHAIN_EXPLORER_URL,
-  )
-
-  const handleCancelOffer = useCallback(
-    async (id: string) => {
-      try {
-        onOpen()
-        await cancel({ id })
-        toast({
-          title: t('user.bid-placed.notifications.canceled'),
-          status: 'success',
-        })
-        await refetch()
-      } catch (e) {
-        toast({
-          title: formatError(e),
-          status: 'error',
-        })
-      } finally {
-        onClose()
-      }
-    },
-    [cancel, onClose, onOpen, refetch, t, toast],
-  )
+  const onCanceled = useCallback(async () => {
+    toast({
+      title: t('user.bid-placed.notifications.canceled'),
+      status: 'success',
+    })
+    await refetch()
+  }, [refetch, toast, t])
 
   const changeOrder = useCallback(
     async (orderBy: any) => {
@@ -189,18 +103,19 @@ const BidPlacedPage: NextPage<Props> = ({
     },
     [replace, pathname, query],
   )
+  if (loading) return <Loader fullPage />
   return (
     <LargeLayout>
       <Head
-        title={meta.title}
-        description={meta.description}
-        image={meta.image}
+        title={userAccount?.name || userAddress}
+        description={userAccount?.description || ''}
+        image={userAccount?.image || ''}
       />
 
       <UserProfileTemplate
         signer={signer}
         account={userAccount}
-        currentAccount={account}
+        currentAccount={address}
         currentTab="bids"
         totals={
           new Map([
@@ -286,7 +201,7 @@ const BidPlacedPage: NextPage<Props> = ({
                 {bids.map((item) => (
                   <Tr fontSize="sm" key={item.id}>
                     <Td>
-                      <Flex gap={3}>
+                      <Flex as={Link} href={`/tokens/${item.asset.id}`} gap={3}>
                         <Image
                           src={item.asset.image}
                           alt={item.asset.name}
@@ -334,16 +249,25 @@ const BidPlacedPage: NextPage<Props> = ({
                       {ownerLoggedIn && (
                         <>
                           {!item.expiredAt || item.expiredAt > new Date() ? (
-                            <Button
+                            <CancelOfferButton
                               variant="outline"
                               colorScheme="gray"
-                              disabled={activeStep !== CancelOfferStep.INITIAL}
-                              onClick={() => handleCancelOffer(item.id)}
+                              signer={signer}
+                              offerId={item.id}
+                              chainId={item.asset.chainId}
+                              onCanceled={onCanceled}
+                              onError={(e) =>
+                                toast({
+                                  status: 'error',
+                                  title: formatError(e),
+                                })
+                              }
+                              title={t('user.bid-placed.cancel.title')}
                             >
                               <Text as="span" isTruncated>
                                 {t('user.bid-placed.actions.cancel')}
                               </Text>
-                            </Button>
+                            </CancelOfferButton>
                           ) : (
                             <Button
                               as={Link}
@@ -363,6 +287,15 @@ const BidPlacedPage: NextPage<Props> = ({
                 ))}
               </Tbody>
             </Table>
+            {bids.length === 0 && (
+              <Empty
+                icon={
+                  <Icon as={HiOutlineSearch} w={8} h={8} color="gray.400" />
+                }
+                title={t('user.bid-placed.table.empty.title')}
+                description={t('user.bid-placed.table.empty.description')}
+              />
+            )}
           </TableContainer>
 
           <Pagination
@@ -387,15 +320,6 @@ const BidPlacedPage: NextPage<Props> = ({
               pages: (props) =>
                 t('pagination.result.pages', { count: props.total }),
             }}
-          />
-
-          <CancelOfferModal
-            isOpen={isOpen}
-            onClose={onClose}
-            title={t('user.bid-placed.cancel.title')}
-            step={activeStep}
-            blockExplorer={blockExplorer}
-            transactionHash={transactionHash}
           />
         </Stack>
       </UserProfileTemplate>

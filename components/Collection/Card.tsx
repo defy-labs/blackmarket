@@ -1,4 +1,5 @@
 import { Flex, Heading } from '@chakra-ui/react'
+import Image from 'next/image'
 import { VFC } from 'react'
 import { COLORS } from 'styles/theme'
 import Link from '../Link/Link'
@@ -10,7 +11,7 @@ export type Props = {
 }
 
 const CollectionCard: VFC<Props> = ({ image, title, collectionAddress }) => {
-  const href = `/explore?collections=${collectionAddress}`
+  const href = `/collection/${collectionAddress.replace('-', '/')}`
 
   return (
     <Flex
@@ -25,7 +26,12 @@ const CollectionCard: VFC<Props> = ({ image, title, collectionAddress }) => {
       href={href}
     >
       <Flex w="100%" h={48} pos="relative">
-        <img src={image} alt={title} style={{ objectFit: 'cover' }} />
+        <Image
+          src={image}
+          alt={title}
+          layout={'fill'}
+          style={{ objectFit: 'cover' }}
+        />
 
         <Flex
           pos="absolute"

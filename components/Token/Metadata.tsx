@@ -9,6 +9,7 @@ import OwnersModal from './Owners/Modal'
 import Supply from './Supply'
 
 export type Props = {
+  assetId: string
   standard: Standard
   creator:
     | {
@@ -25,16 +26,21 @@ export type Props = {
     verified: boolean
     quantity: string
   }[]
+  numberOfOwners: number
   saleSupply: BigNumber
   totalSupply: BigNumber | null | undefined
+  isOpenCollection: boolean
 }
 
 const TokenMetadata: VFC<Props> = ({
+  assetId,
   standard,
   creator,
   owners,
+  numberOfOwners,
   saleSupply,
   totalSupply,
+  isOpenCollection,
 }) => {
   const { t } = useTranslation('components')
   return (
@@ -42,7 +48,9 @@ const TokenMetadata: VFC<Props> = ({
       {creator && (
         <Stack spacing={3}>
           <Heading as="h5" variant="heading3" color="gray.500">
-            {t('token.metadata.creator')}
+            {isOpenCollection
+              ? t('token.metadata.creator')
+              : t('token.metadata.minted_by')}
           </Heading>
           <Avatar
             address={creator.address}
@@ -52,7 +60,7 @@ const TokenMetadata: VFC<Props> = ({
           />
         </Stack>
       )}
-      {owners.length === 1 && owners[0] && (
+      {numberOfOwners === 1 && owners[0] && (
         <Stack spacing={3}>
           <Heading as="h5" variant="heading3" color="gray.500">
             {t('token.metadata.owner')}
@@ -65,12 +73,16 @@ const TokenMetadata: VFC<Props> = ({
           />
         </Stack>
       )}
-      {owners.length > 1 && (
+      {numberOfOwners > 1 && (
         <Stack spacing={3}>
           <Heading as="h5" variant="heading3" color="gray.500">
             {t('token.metadata.owners')}
           </Heading>
-          <OwnersModal owners={owners} />
+          <OwnersModal
+            assetId={assetId}
+            ownersPreview={owners}
+            numberOfOwners={numberOfOwners}
+          />
         </Stack>
       )}
       {standard === 'ERC721' && (

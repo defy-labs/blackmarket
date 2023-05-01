@@ -15,7 +15,7 @@ const config: CodegenConfig = {
   generates: {
     './graphql.ts': {
       schema: './node_modules/@nft/api-graphql/schema.graphql',
-      documents: ['./pages/**/*.gql', './layouts/**/*.gql'],
+      documents: ['./pages/**/*.gql', './layouts/**/*.gql', './hooks/**/*.gql'],
       plugins: [
         'typescript',
         'typescript-operations',

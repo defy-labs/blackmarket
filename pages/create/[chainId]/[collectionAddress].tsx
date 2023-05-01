@@ -1,93 +1,45 @@
 import {
   Alert,
   AlertIcon,
+  Box,
   Center,
   Flex,
+  Grid,
+  GridItem,
   Heading,
   Icon,
   Stack,
   Text,
   useToast,
 } from '@chakra-ui/react'
-import { isSameAddress, useConfig } from '@nft/hooks'
+import { BigNumber } from '@ethersproject/bignumber'
+import { useConfig } from '@nft/hooks'
 import { HiBadgeCheck } from '@react-icons/all-files/hi/HiBadgeCheck'
 import { HiExclamationCircle } from '@react-icons/all-files/hi/HiExclamationCircle'
-import { useWeb3React } from '@web3-react/core'
 import Empty from 'components/Empty/Empty'
 import { NextPage } from 'next'
 import Trans from 'next-translate/Trans'
 import useTranslation from 'next-translate/useTranslation'
 import { useRouter } from 'next/router'
 import React, { useCallback, useMemo, useState } from 'react'
-import invariant from 'ts-invariant'
 import Head from '../../../components/Head'
 import Link from '../../../components/Link/Link'
+import Loader from '../../../components/Loader'
 import BackButton from '../../../components/Navbar/BackButton'
 import type { Props as NFTCardProps } from '../../../components/Token/Card'
 import TokenCard from '../../../components/Token/Card'
 import type { FormData } from '../../../components/Token/Form/Create'
 import TokenFormCreate from '../../../components/Token/Form/Create'
-import connectors from '../../../connectors'
 import environment from '../../../environment'
-import {
-  FetchAccountAndCollectionDocument,
-  FetchAccountAndCollectionQuery,
-  FetchAccountAndCollectionQueryVariables,
-  useFetchAccountAndCollectionQuery,
-} from '../../../graphql'
+import { useFetchAccountAndCollectionQuery } from '../../../graphql'
+import useAccount from '../../../hooks/useAccount'
 import useBlockExplorer from '../../../hooks/useBlockExplorer'
 import useEagerConnect from '../../../hooks/useEagerConnect'
 import useLocalFileURL from '../../../hooks/useLocalFileURL'
+import useRequiredQueryParamSingle from '../../../hooks/useRequiredQueryParamSingle'
 import useSigner from '../../../hooks/useSigner'
 import SmallLayout from '../../../layouts/small'
-import { wrapServerSideProps } from '../../../props'
 import { values as traits } from '../../../traits'
-
-type Props = {
-  chainId: number
-  collectionAddress: string
-  currentAccount: string | null
-}
-
-export const getServerSideProps = wrapServerSideProps<Props>(
-  environment.GRAPHQL_URL,
-  async (context, client) => {
-    const chainId = Array.isArray(context.query.chainId)
-      ? context.query.chainId[0]
-      : context.query.chainId
-    const collectionAddress = Array.isArray(context.query.collectionAddress)
-      ? context.query.collectionAddress[0]
-      : context.query.collectionAddress
-    invariant(collectionAddress, "collectionAddress can't be falsy")
-    invariant(chainId, "chainId can't be falsy")
-    invariant(
-      environment.MINTABLE_COLLECTIONS.filter(({ address }) =>
-        isSameAddress(address, collectionAddress),
-      ).length > 0,
-      'collectionAddress is not mintable',
-    )
-    const { data, error } = await client.query<
-      FetchAccountAndCollectionQuery,
-      FetchAccountAndCollectionQueryVariables
-    >({
-      query: FetchAccountAndCollectionDocument,
-      variables: {
-        chainId: parseInt(chainId, 10),
-        account: context.user.address || '',
-        collectionAddress,
-      },
-    })
-    if (error) throw error
-    if (!data) throw new Error('data is falsy')
-    return {
-      props: {
-        chainId: parseInt(chainId, 10),
-        collectionAddress,
-        currentAccount: context.user.address,
-      },
-    }
-  },
-)
 
 const Layout = ({ children }: { children: React.ReactNode }) => (
   <SmallLayout>
@@ -99,32 +51,29 @@ const Layout = ({ children }: { children: React.ReactNode }) => (
   </SmallLayout>
 )
 
-const CreatePage: NextPage<Props> = ({
-  currentAccount,
-  chainId,
-  collectionAddress,
-}) => {
-  const ready = useEagerConnect()
+const CreatePage: NextPage = ({}) => {
+  useEagerConnect()
   const signer = useSigner()
+  const collectionAddress = useRequiredQueryParamSingle('collectionAddress')
+  const chainId = useRequiredQueryParamSingle<number>('chainId', {
+    parse: parseInt,
+  })
   const { t } = useTranslation('templates')
   const { back, push } = useRouter()
-  const { account } = useWeb3React()
+  const { address } = useAccount()
   const { data: config } = useConfig()
   const toast = useToast()
-  const { data } = useFetchAccountAndCollectionQuery({
+  const { data, loading } = useFetchAccountAndCollectionQuery({
     variables: {
       chainId,
       collectionAddress,
-      account: (ready ? account?.toLowerCase() : currentAccount) || '',
+      account: address || '',
     },
   })
 
   const [formData, setFormData] = useState<Partial<FormData>>()
 
-  const blockExplorer = useBlockExplorer(
-    environment.BLOCKCHAIN_EXPLORER_NAME,
-    environment.BLOCKCHAIN_EXPLORER_URL,
-  )
+  const blockExplorer = useBlockExplorer(chainId)
   const imageUrlLocal = useLocalFileURL(
     formData?.isPrivate || formData?.isAnimation
       ? formData?.preview
@@ -134,16 +83,23 @@ const CreatePage: NextPage<Props> = ({
     formData?.isAnimation && !formData.isPrivate ? formData.content : undefined,
   )
 
-  const asset: NFTCardProps['asset'] = useMemo(
-    () =>
-      ({
-        id: '',
-        image: imageUrlLocal || undefined,
-        animationUrl: animationUrlLocal,
-        name: formData?.name || '',
-      } as NFTCardProps['asset']),
-    [imageUrlLocal, animationUrlLocal, formData?.name],
-  )
+  const asset: NFTCardProps['asset'] | undefined = useMemo(() => {
+    if (!data?.collection) return
+    return {
+      id: '',
+      image: imageUrlLocal || '',
+      animationUrl: animationUrlLocal,
+      name: formData?.name || '',
+      bestBid: undefined,
+      collection: {
+        address: data.collection.address,
+        chainId: data.collection.chainId,
+        name: data.collection.name,
+      },
+      owned: BigNumber.from(0),
+      unlockedContent: null,
+    } as NFTCardProps['asset'] // TODO: use satisfies to ensure proper type
+  }, [imageUrlLocal, animationUrlLocal, formData?.name, data?.collection])
 
   const creator = useMemo(
     () => ({
@@ -174,6 +130,8 @@ const CreatePage: NextPage<Props> = ({
     },
     [push, t, toast],
   )
+
+  if (loading) return <Loader fullPage />
 
   if (environment.RESTRICT_TO_VERIFIED_ACCOUNT && !creator.verified) {
     return (
@@ -237,43 +195,44 @@ const CreatePage: NextPage<Props> = ({
           : t('asset.form.title.single')}
       </Heading>
 
-      <Flex
+      <Grid
         mt={12}
-        w="full"
-        gap={6}
-        direction={{ base: 'column', md: 'row' }}
-        align={{ base: 'center', md: 'flex-start' }}
+        mb={6}
+        gap={12}
+        templateColumns={{ base: '1fr', md: '1fr 2fr' }}
       >
-        <div>
+        <GridItem overflow="hidden">
           <Flex as={Text} color="brand.black" mb={3} variant="button1">
             {t('asset.form.preview')}
           </Flex>
-          <TokenCard
-            asset={asset}
-            creator={creator}
-            auction={undefined}
-            sale={undefined}
-            numberOfSales={0}
-            hasMultiCurrency={false}
+          <Box pointerEvents="none">
+            {asset && (
+              <TokenCard
+                asset={asset}
+                creator={creator}
+                auction={undefined}
+                sale={undefined}
+                numberOfSales={0}
+                hasMultiCurrency={false}
+              />
+            )}
+          </Box>
+        </GridItem>
+        <GridItem overflow="hidden">
+          <TokenFormCreate
+            signer={signer}
+            collection={data.collection}
+            categories={categories}
+            uploadUrl={environment.UPLOAD_URL}
+            blockExplorer={blockExplorer}
+            onCreated={onCreated}
+            onInputChange={setFormData}
+            activateUnlockableContent={config?.hasUnlockableContent || false}
+            maxRoyalties={environment.MAX_ROYALTIES}
+            activateLazyMint={config?.hasLazyMint || false}
           />
-        </div>
-        <TokenFormCreate
-          signer={signer}
-          collection={data.collection}
-          categories={categories}
-          uploadUrl={environment.UPLOAD_URL}
-          blockExplorer={blockExplorer}
-          onCreated={onCreated}
-          onInputChange={setFormData}
-          login={{
-            ...connectors,
-            networkName: environment.NETWORK_NAME,
-          }}
-          activateUnlockableContent={config?.hasUnlockableContent || false}
-          maxRoyalties={environment.MAX_ROYALTIES}
-          activateLazyMint={config?.hasLazyMint || false}
-        />
-      </Flex>
+        </GridItem>
+      </Grid>
     </Layout>
   )
 }

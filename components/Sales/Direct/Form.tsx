@@ -1,5 +1,4 @@
 import {
-  Button,
   FormControl,
   FormErrorMessage,
   FormHelperText,
@@ -31,11 +30,12 @@ import {
 import { FaInfoCircle } from '@react-icons/all-files/fa/FaInfoCircle'
 import dayjs from 'dayjs'
 import useTranslation from 'next-translate/useTranslation'
-import { useMemo, VFC } from 'react'
+import { useEffect, useMemo, VFC } from 'react'
 import { useForm } from 'react-hook-form'
 import { Standard } from '../../../graphql'
 import { BlockExplorer } from '../../../hooks/useBlockExplorer'
 import useParseBigNumber from '../../../hooks/useParseBigNumber'
+import ButtonWithNetworkSwitch from '../../Button/SwitchNetwork'
 import Image from '../../Image/Image'
 import CreateOfferModal from '../../Modal/CreateOffer'
 import Price from '../../Price/Price'
@@ -50,6 +50,7 @@ type FormData = {
 
 type Props = {
   assetId: string
+  chainId: number
   standard: Standard
   currencies: {
     name: string
@@ -70,6 +71,7 @@ type Props = {
 
 const SalesDirectForm: VFC<Props> = ({
   assetId,
+  chainId,
   standard,
   currencies,
   feesPerTenThousand,
@@ -105,6 +107,13 @@ const SalesDirectForm: VFC<Props> = ({
       expiredAt: defaultExpirationValue,
     },
   })
+
+  useEffect(() => {
+    const defaultCurrency = currencies[0]?.id
+    if (defaultCurrency) setValue('currencyId', defaultCurrency)
+    setValue('expiredAt', defaultExpirationValue)
+  }, [currencies, defaultExpirationValue, setValue])
+
   const [createAndPublishOffer, { activeStep, transactionHash }] =
     useCreateOffer(signer)
 
@@ -112,12 +121,11 @@ const SalesDirectForm: VFC<Props> = ({
   const quantity = watch('quantity')
 
   const currencyId = watch('currencyId')
-  const currency = useMemo(() => {
-    const c = currencies.find((x) => x.id === currencyId)
-    if (!c) throw new Error("Can't find currency")
-    return c
-  }, [currencies, currencyId])
-  const priceUnit = useParseBigNumber(price, currency.decimals)
+  const currency = useMemo(
+    () => currencies.find((x) => x.id === currencyId),
+    [currencies, currencyId],
+  )
+  const priceUnit = useParseBigNumber(price, currency?.decimals)
   const quantityBN = useParseBigNumber(quantity)
 
   const amountFees = useMemo(() => {
@@ -164,6 +172,7 @@ const SalesDirectForm: VFC<Props> = ({
 
   const isSingle = useMemo(() => standard === 'ERC721', [standard])
 
+  if (!currency) return <></>
   return (
     <Stack as="form" spacing={8} onSubmit={onSubmit}>
       {currencies.length > 1 && (
@@ -233,6 +242,7 @@ const SalesDirectForm: VFC<Props> = ({
               alt={currency.symbol}
               width={24}
               height={24}
+              objectFit="cover"
             />
           </InputRightElement>
         </InputGroup>
@@ -443,7 +453,8 @@ const SalesDirectForm: VFC<Props> = ({
         )}
       </Stack>
 
-      <Button
+      <ButtonWithNetworkSwitch
+        chainId={chainId}
         isLoading={activeStep !== CreateOfferStep.INITIAL}
         size="lg"
         type="submit"
@@ -452,7 +463,7 @@ const SalesDirectForm: VFC<Props> = ({
         <Text as="span" isTruncated>
           {t('sales.direct.form.submit')}
         </Text>
-      </Button>
+      </ButtonWithNetworkSwitch>
 
       <CreateOfferModal
         isOpen={isOpen}

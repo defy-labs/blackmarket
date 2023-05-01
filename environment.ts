@@ -2,14 +2,11 @@ import invariant from 'ts-invariant'
 
 type Environment = {
   MAGIC_API_KEY: string
-  PUBLIC_ETHEREUM_PROVIDER: string
-  BLOCKCHAIN_EXPLORER_URL: string
-  BLOCKCHAIN_EXPLORER_NAME: string
-  DRONE_COLLECTION_ADDRESS: string
   GRAPHQL_URL: string
   PAGINATION_LIMIT: number
+  DRONE_COLLECTION_ADDRESS: string
   CHAIN_ID: number
-  NETWORK_NAME: string
+  CHAIN_IDS: number[]
   REPORT_EMAIL: string
   HOME_TOKENS?: string[]
   OFFER_VALIDITY_IN_SECONDS: number
@@ -38,32 +35,19 @@ type Environment = {
 // magic api key
 // invariant(process.env.NEXT_PUBLIC_MAGIC_API_KEY, 'Missing magic API key')
 
-// ethereum provider
-invariant(
-  process.env.NEXT_PUBLIC_ETHEREUM_PROVIDER,
-  'Missing public Ethereum provider',
-)
-
-// blockchain explorer
-invariant(
-  process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL,
-  'Missing blockchain explorer URL',
-)
-invariant(
-  process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_NAME,
-  'Missing blockchain explorer name',
-)
-
 // graphql
 invariant(process.env.NEXT_PUBLIC_GRAPHQL_URL, 'Missing GraphQL URL')
 
 // chain id
-invariant(process.env.NEXT_PUBLIC_CHAIN_ID, 'missing env NEXT_PUBLIC_CHAIN_ID')
-const CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID, 10)
+const CHAIN_IDS = (process.env.NEXT_PUBLIC_CHAIN_IDS || '')
+  .split(',')
+  .map((x) => parseInt(x, 10))
+  .filter((x) => !isNaN(x))
+const CHAIN_ID = process.env.NEXT_PUBLIC_CHAIN_ID
+  ? parseInt(process.env.NEXT_PUBLIC_CHAIN_ID, 10)
+  : CHAIN_IDS[0]
+invariant(CHAIN_ID, 'missing env CHAIN_ID or CHAIN_IDS')
 invariant(!isNaN(CHAIN_ID), 'env NEXT_PUBLIC_CHAIN_ID must be an integer')
-
-// network name
-invariant(process.env.NEXT_PUBLIC_NETWORK_NAME, 'missing env NETWORK_NAME')
 
 invariant(process.env.NEXT_PUBLIC_REPORT_EMAIL, 'missing env REPORT_EMAIL')
 
@@ -129,14 +113,11 @@ const MINTABLE_COLLECTIONS = (
 
 const environment: Environment = {
   MAGIC_API_KEY: process.env.NEXT_PUBLIC_MAGIC_API_KEY ?? '',
-  PUBLIC_ETHEREUM_PROVIDER: process.env.NEXT_PUBLIC_ETHEREUM_PROVIDER,
-  BLOCKCHAIN_EXPLORER_URL: process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_URL,
-  BLOCKCHAIN_EXPLORER_NAME: process.env.NEXT_PUBLIC_BLOCKCHAIN_EXPLORER_NAME,
   DRONE_COLLECTION_ADDRESS: process.env.NEXT_PUBLIC_DRONE_COLLECTION_ADDRESS,
   GRAPHQL_URL: process.env.NEXT_PUBLIC_GRAPHQL_URL,
   PAGINATION_LIMIT: 12,
   CHAIN_ID: CHAIN_ID,
-  NETWORK_NAME: process.env.NEXT_PUBLIC_NETWORK_NAME,
+  CHAIN_IDS: CHAIN_IDS,
   REPORT_EMAIL: process.env.NEXT_PUBLIC_REPORT_EMAIL,
   HOME_TOKENS: process.env.NEXT_PUBLIC_HOME_TOKENS?.split(','),
   OFFER_VALIDITY_IN_SECONDS: OFFER_VALIDITY_IN_SECONDS,

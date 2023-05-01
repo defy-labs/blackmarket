@@ -1,4 +1,4 @@
-import { Box, Flex } from '@chakra-ui/react'
+import { Flex } from '@chakra-ui/react'
 import { VFC } from 'react'
 import Image from '../../Image/Image'
 import AccountImage from '../../Wallet/Image'
@@ -28,26 +28,30 @@ const UserProfileBanner: VFC<Props> = ({ cover, image, address, name }) => {
         <Image
           src={cover}
           alt={name || address}
-          height={200}
-          width={1440}
+          layout="fill"
           objectFit="cover"
           rounded="xl"
+          sizes="
+          (min-width: 80em) 1216px,
+          100vw"
         />
       )}
-      <Box
+      <Flex
         position="absolute"
         bottom={-12}
         left={6}
-        h={24}
-        w={24}
-        overflow="hidden"
         rounded="full"
         borderWidth="4px"
         borderColor="white"
-        bgColor="white"
       >
-        <AccountImage address={address} image={image} size={96} />
-      </Box>
+        <Flex
+          as={AccountImage}
+          address={address}
+          image={image}
+          size={88}
+          rounded="full"
+        />
+      </Flex>
     </Flex>
   )
 }

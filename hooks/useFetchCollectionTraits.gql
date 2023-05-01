@@ -1,0 +1,13 @@
+query FetchCollectionTraits($chainId: Int!, $address: Address!) {
+  collection(chainId: $chainId, address: $address) {
+    chainId
+    address
+    traits {
+      type
+      values {
+        count
+        value
+      }
+    }
+  }
+}

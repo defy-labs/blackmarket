@@ -1,18 +1,19 @@
 import {
-  Button,
   Divider,
   Flex,
   Icon,
   Text,
   useDisclosure,
+  useToast,
 } from '@chakra-ui/react'
 import { Signer } from '@ethersproject/abstract-signer'
-import { BigNumber } from '@ethersproject/bignumber'
+import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import {
   AcceptOfferStep,
   CancelOfferStep,
   dateFromNow,
   formatDate,
+  formatError,
   isSameAddress,
   useAcceptOffer,
   useCancelOffer,
@@ -22,6 +23,7 @@ import Trans from 'next-translate/Trans'
 import useTranslation from 'next-translate/useTranslation'
 import { SyntheticEvent, useMemo, VFC } from 'react'
 import { BlockExplorer } from '../../hooks/useBlockExplorer'
+import ButtonWithNetworkSwitch from '../Button/SwitchNetwork'
 import Link from '../Link/Link'
 import { ListItem } from '../List/List'
 import AcceptOfferModal from '../Modal/AcceptOffer'
@@ -29,6 +31,7 @@ import CancelOfferModal from '../Modal/CancelOffer'
 import Price from '../Price/Price'
 import WalletAddress from '../Wallet/Address'
 import AccountImage from '../Wallet/Image'
+import BidAcceptModal from './AcceptModal'
 
 export type Props = {
   bid: {
@@ -48,26 +51,31 @@ export type Props = {
       verified: boolean
     }
   }
+  chainId: number
   signer: Signer | undefined
   account: string | null | undefined
   blockExplorer: BlockExplorer
   isSingle: boolean
   preventAcceptation: boolean
+  totalOwned: BigNumber
   onAccepted: (id: string) => Promise<void>
   onCanceled: (id: string) => Promise<void>
 }
 
 const Bid: VFC<Props> = ({
   bid,
+  chainId,
   signer,
   account,
   blockExplorer,
   isSingle,
   preventAcceptation,
+  totalOwned,
   onAccepted,
   onCanceled,
 }) => {
   const { t } = useTranslation('components')
+  const toast = useToast()
   const {
     isOpen: acceptOfferIsOpen,
     onOpen: acceptOfferOnOpen,
@@ -77,6 +85,11 @@ const Bid: VFC<Props> = ({
     isOpen: cancelOfferIsOpen,
     onOpen: cancelOfferOnOpen,
     onClose: cancelOfferOnClose,
+  } = useDisclosure()
+  const {
+    isOpen: confirmAcceptIsOpen,
+    onOpen: confirmAcceptOnOpen,
+    onClose: confirmAcceptOnClose,
   } = useDisclosure()
 
   const [
@@ -99,15 +112,19 @@ const Bid: VFC<Props> = ({
     return isSameAddress(account, bid.maker.address)
   }, [account, bid])
 
-  const acceptBid = async (e: SyntheticEvent) => {
-    e.stopPropagation()
-    e.preventDefault()
+  const acceptBid = async (quantity?: BigNumberish) => {
     if (!canAccept) return
     if (activeAcceptOfferStep !== AcceptOfferStep.INITIAL) return
     try {
       acceptOfferOnOpen()
-      await acceptOffer(bid, bid.availableQuantity)
+      confirmAcceptOnClose()
+      await acceptOffer(bid, quantity || bid.availableQuantity)
       await onAccepted(bid.id)
+    } catch (e) {
+      toast({
+        title: formatError(e),
+        status: 'error',
+      })
     } finally {
       acceptOfferOnClose()
     }
@@ -122,6 +139,11 @@ const Bid: VFC<Props> = ({
       cancelOfferOnOpen()
       await cancelOffer(bid)
       await onCanceled(bid.id)
+    } catch (e) {
+      toast({
+        title: formatError(e),
+        status: 'error',
+      })
     } finally {
       cancelOfferOnClose()
     }
@@ -131,15 +153,15 @@ const Bid: VFC<Props> = ({
     <>
       <ListItem
         image={
-          <Link href={`/users/${bid.maker.address}`}>
+          <Flex as={Link} href={`/users/${bid.maker.address}`}>
             <Flex
               as={AccountImage}
               address={bid.maker.address}
               image={bid.maker.image}
               size={40}
-              cursor="pointer"
+              rounded="full"
             />
-          </Link>
+          </Flex>
         }
         label={
           <Flex gap={2}>
@@ -216,18 +238,24 @@ const Bid: VFC<Props> = ({
         action={
           <>
             {canAccept && (
-              <Button
+              <ButtonWithNetworkSwitch
+                chainId={chainId}
                 w={{ base: 'full', md: 'auto' }}
                 isLoading={activeAcceptOfferStep !== AcceptOfferStep.INITIAL}
-                onClick={acceptBid}
+                onClick={() =>
+                  bid.availableQuantity.gt(1)
+                    ? confirmAcceptOnOpen()
+                    : acceptBid()
+                }
               >
                 <Text as="span" isTruncated>
                   {t('bid.detail.accept')}
                 </Text>
-              </Button>
+              </ButtonWithNetworkSwitch>
             )}
             {canCancel && (
-              <Button
+              <ButtonWithNetworkSwitch
+                chainId={chainId}
                 variant="outline"
                 colorScheme="gray"
                 w={{ base: 'full', md: 'auto' }}
@@ -237,7 +265,7 @@ const Bid: VFC<Props> = ({
                 <Text as="span" isTruncated>
                   {t('bid.detail.cancel')}
                 </Text>
-              </Button>
+              </ButtonWithNetworkSwitch>
             )}
           </>
         }
@@ -258,6 +286,13 @@ const Bid: VFC<Props> = ({
         step={activeCancelOfferStep}
         blockExplorer={blockExplorer}
         transactionHash={cancelOfferHash}
+      />
+      <BidAcceptModal
+        isOpen={confirmAcceptIsOpen}
+        onClose={confirmAcceptOnClose}
+        acceptBid={acceptBid}
+        bid={bid}
+        totalOwned={totalOwned}
       />
     </>
   )

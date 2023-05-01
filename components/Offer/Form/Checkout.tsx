@@ -21,19 +21,16 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import { Signer } from '@ethersproject/abstract-signer'
-import { EmailConnector } from '@nft/email-connector'
 import { formatError, useAcceptOffer, useBalance } from '@nft/hooks'
-import { InjectedConnector } from '@web3-react/injected-connector'
-import { WalletConnectConnector } from '@web3-react/walletconnect-connector'
-import { WalletLinkConnector } from '@web3-react/walletlink-connector'
+import { useConnectModal } from '@rainbow-me/rainbowkit'
 import useTranslation from 'next-translate/useTranslation'
-import { FC, useMemo } from 'react'
+import { FC, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { Offer } from '../../../graphql'
 import { BlockExplorer } from '../../../hooks/useBlockExplorer'
 import useParseBigNumber from '../../../hooks/useParseBigNumber'
+import ButtonWithNetworkSwitch from '../../Button/SwitchNetwork'
 import AcceptOfferModal from '../../Modal/AcceptOffer'
-import LoginModal from '../../Modal/Login'
 import Balance from '../../User/Balance'
 import Summary from '../Summary'
 
@@ -45,6 +42,7 @@ type Props = {
   signer: Signer | undefined
   account: string | null | undefined
   offer: Pick<Offer, 'id' | 'unitPrice' | 'availableQuantity'>
+  chainId: number
   blockExplorer: BlockExplorer
   currency: {
     id: string
@@ -54,13 +52,6 @@ type Props = {
   onPurchased: () => void
   multiple?: boolean
   allowTopUp: boolean
-  login: {
-    email?: EmailConnector
-    injected?: InjectedConnector
-    walletConnect?: WalletConnectConnector
-    coinbase?: WalletLinkConnector
-    networkName: string
-  }
 }
 
 const OfferFormCheckout: FC<Props> = ({
@@ -70,18 +61,14 @@ const OfferFormCheckout: FC<Props> = ({
   onPurchased,
   multiple,
   offer,
+  chainId,
   blockExplorer,
   allowTopUp,
-  login,
 }) => {
   const { t } = useTranslation('components')
   const [acceptOffer, { activeStep, transactionHash }] = useAcceptOffer(signer)
   const toast = useToast()
-  const {
-    isOpen: loginIsOpen,
-    onOpen: loginOnOpen,
-    onClose: loginOnClose,
-  } = useDisclosure()
+  const { openConnectModal } = useConnectModal()
   const {
     isOpen: acceptOfferIsOpen,
     onOpen: acceptOfferOnOpen,
@@ -98,6 +85,12 @@ const OfferFormCheckout: FC<Props> = ({
       quantity: offer.availableQuantity,
     },
   })
+
+  useEffect(
+    () => setValue('quantity', offer.availableQuantity),
+    [offer.availableQuantity, setValue],
+  )
+
   const quantity = watch('quantity')
 
   const [balance] = useBalance(account, currency.id)
@@ -217,8 +210,9 @@ const OfferFormCheckout: FC<Props> = ({
         </Box>
       </Alert>
       {account ? (
-        <Button
-          disabled={!!account && !canPurchase}
+        <ButtonWithNetworkSwitch
+          chainId={chainId}
+          isDisabled={!!account && !canPurchase}
           isLoading={isSubmitting}
           size="lg"
           type="submit"
@@ -226,15 +220,15 @@ const OfferFormCheckout: FC<Props> = ({
           <Text as="span" isTruncated>
             {t('offer.form.checkout.submit')}
           </Text>
-        </Button>
+        </ButtonWithNetworkSwitch>
       ) : (
-        <Button size="lg" type="button" onClick={loginOnOpen}>
+        <Button size="lg" type="button" onClick={openConnectModal}>
           <Text as="span" isTruncated>
             {t('offer.form.checkout.submit')}
           </Text>
         </Button>
       )}
-      <LoginModal isOpen={loginIsOpen} onClose={loginOnClose} {...login} />
+
       <AcceptOfferModal
         isOpen={acceptOfferIsOpen}
         onClose={acceptOfferOnClose}

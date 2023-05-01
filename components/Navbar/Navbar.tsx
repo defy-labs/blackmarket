@@ -29,20 +29,16 @@ import {
   useDisclosure,
 } from '@chakra-ui/react'
 import { Signer } from '@ethersproject/abstract-signer'
-import { EmailConnector } from '@nft/email-connector'
 import { useAddFund } from '@nft/hooks'
+import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { FaBell } from '@react-icons/all-files/fa/FaBell'
+import { FaEnvelope } from '@react-icons/all-files/fa/FaEnvelope'
 import { HiChevronDown } from '@react-icons/all-files/hi/HiChevronDown'
 import { HiOutlineMenu } from '@react-icons/all-files/hi/HiOutlineMenu'
 import { HiOutlineSearch } from '@react-icons/all-files/hi/HiOutlineSearch'
-import { useWeb3React } from '@web3-react/core'
-import { InjectedConnector } from '@web3-react/injected-connector'
-import { WalletConnectConnector } from '@web3-react/walletconnect-connector'
-import { WalletLinkConnector } from '@web3-react/walletlink-connector'
 import WelcomeModal from 'components/Modal/Welcome'
 import useTranslation from 'next-translate/useTranslation'
 import { MittEmitter } from 'next/dist/shared/lib/mitt'
-import Image from 'next/image'
 import {
   FC,
   HTMLAttributes,
@@ -54,9 +50,11 @@ import {
 } from 'react'
 import { useCookies } from 'react-cookie'
 import { useForm } from 'react-hook-form'
+import { useDisconnect } from 'wagmi'
 import { useNavbarAccountQuery } from '../../graphql'
+import useAccount from '../../hooks/useAccount'
+import Image from '../Image/Image'
 import Link from '../Link/Link'
-import LoginModal from '../Modal/Login'
 import Select from '../Select/Select'
 import AccountImage from '../Wallet/Image'
 
@@ -222,6 +220,9 @@ const DrawerMenu: VFC<{
                     </AccordionPanel>
                   </AccordionItem>
                 </Accordion>
+                <Link href="/chat">
+                  <NavItemMobile>{t('navbar.chat')}</NavItemMobile>
+                </Link>
                 <Link href="/notification">
                   <NavItemMobile>{t('navbar.notifications')}</NavItemMobile>
                 </Link>
@@ -352,12 +353,12 @@ const UserMenu: VFC<{
     <Menu>
       <MenuButton>
         <Flex>
-          <Box
+          <Flex
             as={AccountImage}
-            rounded="full"
             address={user.address || account}
             image={user.image}
             size={40}
+            rounded="full"
           />
         </Flex>
       </MenuButton>
@@ -372,7 +373,10 @@ const UserMenu: VFC<{
           <MenuItem>{t('navbar.user.edit')}</MenuItem>
         </Link>
         {topUp.allowTopUp && (
-          <MenuItem disabled={topUp.addingFund} onClick={() => topUp.addFund()}>
+          <MenuItem
+            isDisabled={topUp.addingFund}
+            onClick={() => topUp.addFund()}
+          >
             {t('navbar.user.top-up')}
           </MenuItem>
         )}
@@ -403,53 +407,38 @@ const Navbar: VFC<{
     isReady: boolean
     events: MittEmitter<'routeChangeStart'>
   }
-  login: {
-    email?: EmailConnector
-    injected?: InjectedConnector
-    walletConnect?: WalletConnectConnector
-    coinbase?: WalletLinkConnector
-    networkName: string
-  }
   signer: Signer | undefined
   multiLang?: MultiLang
-}> = ({
-  allowTopUp,
-  logo,
-  router,
-  login,
-  multiLang,
-  disableMinting,
-  signer,
-}) => {
+}> = ({ allowTopUp, logo, router, multiLang, disableMinting, signer }) => {
   const { t } = useTranslation('components')
-  const {
-    isOpen: isLoginOpen,
-    onOpen: onOpenLogin,
-    onClose: onCloseLogin,
-  } = useDisclosure()
   const {
     isOpen: isWelcomeOpen,
     onOpen: onOpenWelcome,
     onClose: onCloseWelcome,
   } = useDisclosure()
-  const { account: accountWithChecksum, deactivate } = useWeb3React()
-  const account = accountWithChecksum?.toLowerCase()
+  const { address, isLoggedIn, logout, isConnected } = useAccount()
+  const { disconnect } = useDisconnect()
   const { asPath, query, push, isReady } = router
   const { register, setValue, handleSubmit } = useForm<FormData>()
   const [addFund, { loading: addingFund }] = useAddFund(signer)
   const [cookies] = useCookies()
-  const lastNotification = cookies[`lastNotification-${account}`]
-  const { data, refetch } = useNavbarAccountQuery({
+  const lastNotification = cookies[`lastNotification-${address}`]
+  const {
+    data: accountData,
+    refetch,
+    previousData: previousAccountData,
+  } = useNavbarAccountQuery({
     variables: {
-      account: account?.toLowerCase() || '',
+      account: address?.toLowerCase() || '',
       lastNotification: new Date(lastNotification || 0),
     },
-    skip: !account,
+    skip: !isLoggedIn,
   })
+  const account = isLoggedIn
+    ? accountData?.account || previousAccountData?.account
+    : undefined
 
-  const [hasViewedWelcome, setHasViewedWelcome] = useState(
-    localStorage.getItem(WELCOME_MODAL_STORAGE_KEY) === 'true',
-  )
+  const [hasViewedWelcome, setHasViewedWelcome] = useState(false)
 
   const handleOnCloseWelcome = useCallback(() => {
     onCloseWelcome()
@@ -460,14 +449,17 @@ const Navbar: VFC<{
     }
   }, [onCloseWelcome])
 
-  const onSubmit = handleSubmit((data) => {
-    if (data.search) query.search = data.search
-    else delete query.search
-    delete query.skip // reset pagination
-    return push({ pathname: '/explore', query })
-  })
+  // const onSubmit = handleSubmit((data) => {
+  //   if (data.search) query.search = data.search
+  //   else delete query.search
+  //   delete query.skip // reset pagination
+  //   return push({ pathname: '/explore', query })
+  // })
 
   useEffect(() => {
+    setHasViewedWelcome(
+      localStorage.getItem(WELCOME_MODAL_STORAGE_KEY) === 'true',
+    )
     if (!isReady) return
     if (!query.search) return setValue('search', '')
     if (Array.isArray(query.search)) return setValue('search', '')
@@ -487,6 +479,15 @@ const Navbar: VFC<{
       onOpenWelcome()
     }
   }, [hasViewedWelcome, onOpenWelcome])
+
+  const onSubmit = handleSubmit((data) => {
+    if (data.search) query.search = data.search
+    else delete query.search
+    delete query.skip // reset pagination
+    delete query.page // reset pagination
+    if (router.asPath.startsWith('/explore')) return push({ query })
+    return push({ pathname: '/explore', query })
+  })
 
   return (
     <>
@@ -534,9 +535,20 @@ const Navbar: VFC<{
               </Text>
             </Flex>
           )}
-          {account && data?.account ? (
-            <>
-              <ActivityMenu account={account} />
+          {account ? (
+            <HStack spacing={2}>
+              <ActivityMenu account={account.address} />
+              <Link href="/chat">
+                <IconButton
+                  aria-label="Notifications"
+                  variant="ghost"
+                  colorScheme="gray"
+                  rounded="full"
+                  icon={
+                    <Icon as={FaEnvelope} color="brand.black" h={4} w={4} />
+                  }
+                />
+              </Link>
               <Link href="/notification">
                 <IconButton
                   aria-label="Notifications"
@@ -545,9 +557,9 @@ const Navbar: VFC<{
                   rounded="full"
                   position="relative"
                 >
-                  <div>
+                  <Flex>
                     <Icon as={FaBell} color="brand.black" h={4} w={4} />
-                    {data.account.notifications.totalCount > 0 && (
+                    {account.notifications.totalCount > 0 && (
                       <Flex
                         position="absolute"
                         top={2}
@@ -560,22 +572,29 @@ const Navbar: VFC<{
                         bgColor="red.500"
                       />
                     )}
-                  </div>
+                  </Flex>
                 </IconButton>
               </Link>
               <UserMenu
-                account={account}
+                account={account.address}
                 topUp={{ allowTopUp, addFund, addingFund }}
-                user={data.account}
-                signOutFn={deactivate}
+                user={account}
+                signOutFn={() => logout().then(disconnect)}
               />
-            </>
+            </HStack>
+          ) : isConnected ? (
+            <Button
+              colorScheme="brand"
+              isLoading
+              loadingText={t('navbar.signing-in')}
+            />
           ) : (
-            <Button onClick={onOpenLogin}>
-              <Text as="span" isTruncated>
-                {t('navbar.sign-in')}
-              </Text>
-            </Button>
+            <ConnectButton
+              accountStatus="address"
+              chainStatus="none"
+              showBalance={false}
+              label={t('navbar.sign-in')}
+            />
           )}
           {multiLang && (
             <Flex display={{ base: 'none', lg: 'flex' }} align="center">
@@ -594,19 +613,16 @@ const Navbar: VFC<{
         </Flex>
         <Flex display={{ base: 'flex', lg: 'none' }} align="center">
           <DrawerMenu
-            account={account}
+            account={account?.address}
             logo={logo}
             router={router}
             multiLang={multiLang}
             topUp={{ allowTopUp, addFund, addingFund }}
             disableMinting={disableMinting}
-            signOutFn={deactivate}
+            signOutFn={() => logout().then(disconnect)}
           />
         </Flex>
       </Flex>
-
-      <LoginModal isOpen={isLoginOpen} onClose={onCloseLogin} {...login} />
-
       <WelcomeModal isOpen={isWelcomeOpen} onClose={handleOnCloseWelcome} />
     </>
   )

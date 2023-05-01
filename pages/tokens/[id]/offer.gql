@@ -7,7 +7,11 @@ query FeesForOffer($id: String!) {
 query OfferForAsset($id: String!, $address: Address, $now: Datetime!) {
   asset(id: $id) {
     id
+    chainId
     collection {
+      chainId
+      address
+      name
       standard
     }
     name
@@ -57,6 +61,23 @@ query OfferForAsset($id: String!, $address: Address, $now: Datetime!) {
         }
       }
     }
+    bestBid: bids(
+      orderBy: [UNIT_PRICE_IN_REF_DESC, CREATED_AT_ASC]
+      filter: { expiredAt: { greaterThan: $now } }
+      first: 1
+    ) {
+      nodes {
+        unitPrice
+        amount
+        currency {
+          image
+          name
+          id
+          decimals
+          symbol
+        }
+      }
+    }
     firstSale: sales(
       first: 1
       orderBy: [UNIT_PRICE_IN_REF_ASC, CREATED_AT_ASC]
@@ -89,16 +110,6 @@ query OfferForAsset($id: String!, $address: Address, $now: Datetime!) {
       verification {
         status
       }
-    }
-  }
-  currencies(orderBy: CREATED_AT_ASC) {
-    nodes {
-      image
-      name
-      id
-      decimals
-      symbol
-      address
     }
   }
 }

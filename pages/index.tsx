@@ -114,7 +114,11 @@ export const getServerSideProps = wrapServerSideProps<Props>(
   },
 )
 
-const HomePage: NextPage<Props> = ({ featuredCollections, featuredTokens, now }) => {
+const HomePage: NextPage<Props> = ({
+  featuredCollections,
+  featuredTokens,
+  now,
+}) => {
   const signer = useSigner()
   const { t } = useTranslation('templates')
   const { address } = useAccount()

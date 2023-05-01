@@ -26,7 +26,12 @@ const CollectionCard: VFC<Props> = ({ image, title, collectionAddress }) => {
       href={href}
     >
       <Flex w="100%" h={48} pos="relative">
-        <Image src={image} alt={title} layout={'fill'} style={{ objectFit: 'cover' }} />
+        <Image
+          src={image}
+          alt={title}
+          layout={'fill'}
+          style={{ objectFit: 'cover' }}
+        />
 
         <Flex
           pos="absolute"

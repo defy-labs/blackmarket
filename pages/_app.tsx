@@ -137,7 +137,6 @@ function Layout({ children }: PropsWithChildren<{}>) {
           src="https://widgets.coingecko.com/coingecko-coin-price-marquee-widget.js"
         ></script>
       </Helmet>
-      <Banner />
       <Navbar
         allowTopUp={environment.ALLOW_TOP_UP}
         router={{

@@ -168,7 +168,7 @@ const HomePage: NextPage<Props> = ({ featuredCollections, featuredTokens, now })
     })
   }, [error, t, toast])
 
-  const featured = useOrderById([], data?.featured?.nodes)
+  const featured = useOrderById(featuredTokens, data?.featured?.nodes)
   const assets = useOrderById(assetIds, data?.assets?.nodes)
   const currencies = useMemo(() => data?.currencies?.nodes || [], [data])
   const auctions = useMemo(() => data?.auctions?.nodes || [], [data])

@@ -1,4 +1,4 @@
-import { MagicConnectConnector } from '@everipedia/wagmi-magic-connector'
+import { MagicAuthConnector } from '@everipedia/wagmi-magic-connector'
 import {
   connectorsForWallets,
   Wallet,
@@ -133,7 +133,7 @@ function emailConnector({
     iconUrl: '/magic.svg',
     iconBackground: '#fff',
     createConnector: () => {
-      const connector = new MagicConnectConnector({
+      const connector = new MagicAuthConnector({
         chains: chains,
         options: {
           apiKey: apiKey,
@@ -144,6 +144,10 @@ function emailConnector({
               rpcUrl,
               chainId,
             },
+          },
+          oauthOptions: {
+            providers: ['facebook', 'google', 'twitter', 'discord', 'apple'],
+            callbackUrl: 'https://blackmarket.defydisrupt.io',
           },
         },
       }) as unknown as Connector

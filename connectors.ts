@@ -66,12 +66,6 @@ const getDefaultWallets = ({
     {
       groupName: 'Popular',
       wallets: [
-        injectedWallet({ chains, shimDisconnect }),
-        rainbowWallet({ chains, shimDisconnect }),
-        coinbaseWallet({ appName, chains }),
-        metaMaskWallet({ chains, shimDisconnect }),
-        walletConnectWallet({ chains }),
-        braveWallet({ chains, shimDisconnect }),
         environment.MAGIC_API_KEY
           ? emailConnector({
               chains,
@@ -79,6 +73,12 @@ const getDefaultWallets = ({
               apiKey: environment.MAGIC_API_KEY,
             })
           : undefined,
+        injectedWallet({ chains, shimDisconnect }),
+        rainbowWallet({ chains, shimDisconnect }),
+        coinbaseWallet({ appName, chains }),
+        metaMaskWallet({ chains, shimDisconnect }),
+        walletConnectWallet({ chains }),
+        braveWallet({ chains, shimDisconnect }),
       ].filter(Boolean),
     },
   ]
@@ -129,8 +129,8 @@ function emailConnector({
   invariant(rpcUrl, `no rpcUrl found for chain ${chainId}`)
   return {
     id: 'magic',
-    name: 'Magic',
-    iconUrl: '/magic.svg',
+    name: 'DEFY App',
+    iconUrl: '/defy.jpg',
     iconBackground: '#fff',
     createConnector: () => {
       const connector = new MagicAuthConnector({

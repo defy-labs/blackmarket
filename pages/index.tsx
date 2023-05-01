@@ -114,7 +114,7 @@ export const getServerSideProps = wrapServerSideProps<Props>(
   },
 )
 
-const HomePage: NextPage<Props> = ({ featuredCollections, now }) => {
+const HomePage: NextPage<Props> = ({ featuredCollections, featuredTokens, now }) => {
   const signer = useSigner()
   const { t } = useTranslation('templates')
   const { address } = useAccount()
@@ -151,7 +151,7 @@ const HomePage: NextPage<Props> = ({ featuredCollections, now }) => {
 
   const { data, refetch, error, loading } = useFetchHomePageQuery({
     variables: {
-      featuredIds: [],
+      featuredIds: featuredTokens,
       now: date,
       limit: environment.PAGINATION_LIMIT,
       assetIds: assetIds,

@@ -11,7 +11,7 @@ export type Props = {
 }
 
 const CollectionCard: VFC<Props> = ({ image, title, collectionAddress }) => {
-  const href = `/explore?collections=${collectionAddress}`
+  const href = `/collection/${collectionAddress.replace('-', '/')}`
 
   return (
     <Flex
@@ -26,7 +26,7 @@ const CollectionCard: VFC<Props> = ({ image, title, collectionAddress }) => {
       href={href}
     >
       <Flex w="100%" h={48} pos="relative">
-        <Image src={image} alt={title} style={{ objectFit: 'cover' }} />
+        <Image src={image} alt={title} layout={'fill'} style={{ objectFit: 'cover' }} />
 
         <Flex
           pos="absolute"

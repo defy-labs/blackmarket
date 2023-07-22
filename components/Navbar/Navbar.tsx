@@ -42,7 +42,7 @@ import { MittEmitter } from 'next/dist/shared/lib/mitt'
 import {
   FC,
   HTMLAttributes,
-  useCallback,
+  // useCallback,
   useEffect,
   useRef,
   useState,
@@ -412,9 +412,9 @@ const Navbar: VFC<{
 }> = ({ allowTopUp, logo, router, multiLang, disableMinting, signer }) => {
   const { t } = useTranslation('components')
   const {
-    isOpen: isWelcomeOpen,
+    // isOpen: isWelcomeOpen,
     onOpen: onOpenWelcome,
-    onClose: onCloseWelcome,
+    // onClose: onCloseWelcome,
   } = useDisclosure()
   const { address, isLoggedIn, logout, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
@@ -440,14 +440,14 @@ const Navbar: VFC<{
 
   const [hasViewedWelcome, setHasViewedWelcome] = useState(false)
 
-  const handleOnCloseWelcome = useCallback(() => {
-    onCloseWelcome()
-    setHasViewedWelcome(true)
+  // const handleOnCloseWelcome = useCallback(() => {
+  //   onCloseWelcome()
+  //   setHasViewedWelcome(true)
 
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(WELCOME_MODAL_STORAGE_KEY, 'true')
-    }
-  }, [onCloseWelcome])
+  //   if (typeof window !== 'undefined') {
+  //     localStorage.setItem(WELCOME_MODAL_STORAGE_KEY, 'true')
+  //   }
+  // }, [onCloseWelcome])
 
   // const onSubmit = handleSubmit((data) => {
   //   if (data.search) query.search = data.search

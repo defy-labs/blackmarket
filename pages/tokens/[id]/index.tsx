@@ -34,7 +34,7 @@ import { useRouter } from 'next/router'
 import { useCallback, useMemo, useState } from 'react'
 import BidList from '../../../components/Bid/BidList'
 import Head from '../../../components/Head'
-import HistoryList from '../../../components/History/HistoryList'
+// import HistoryList from '../../../components/History/HistoryList'
 import Image from '../../../components/Image/Image'
 import Link from '../../../components/Link/Link'
 import Loader from '../../../components/Loader'
@@ -46,7 +46,7 @@ import { chains } from '../../../connectors'
 import {
   convertAuctionFull,
   convertBidFull,
-  convertHistories,
+  // convertHistories,
   convertOwnership,
   convertSaleFull,
   convertTraits,

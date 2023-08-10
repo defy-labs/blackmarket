@@ -216,36 +216,36 @@ query FetchAsset($id: String!, $address: Address, $now: Datetime!) {
         }
       }
     }
-    # histories(orderBy: DATE_DESC, first: 100, filter: {fromAddress:{notEqualTo: "0x0000000000000000000000000000000000000000"}, toAddress:{notEqualTo:"0x0000000000000000000000000000000000000000"}}) {
-    #   nodes {
-    #     action
-    #     date
-    #     unitPrice
-    #     quantity
-    #     fromAddress
-    #     from {
-    #       address
-    #       name
-    #       image
-    #       verification {
-    #         status
-    #       }
-    #     }
-    #     toAddress
-    #     to {
-    #       address
-    #       name
-    #       image
-    #       verification {
-    #         status
-    #       }
-    #     }
-    #     transactionHash
-    #     currency {
-    #       decimals
-    #       symbol
-    #     }
-    #   }
-    # }
+    histories(orderBy: DATE_DESC, first: 100, filter: {fromAddress:{notEqualTo: "0x0000000000000000000000000000000000000000"}, toAddress:{notEqualTo:"0x0000000000000000000000000000000000000000"}}) {
+      nodes {
+        action
+        date
+        unitPrice
+        quantity
+        fromAddress
+        from {
+          address
+          name
+          image
+          verification {
+            status
+          }
+        }
+        toAddress
+        to {
+          address
+          name
+          image
+          verification {
+            status
+          }
+        }
+        transactionHash
+        currency {
+          decimals
+          symbol
+        }
+      }
+    }
   }
 }

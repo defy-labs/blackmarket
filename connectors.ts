@@ -68,10 +68,10 @@ const getDefaultWallets = ({
       wallets: [
         environment.MAGIC_API_KEY
           ? emailConnector({
-              chains,
-              chainId: environment.CHAIN_ID,
-              apiKey: environment.MAGIC_API_KEY,
-            })
+            chains,
+            chainId: environment.CHAIN_ID,
+            apiKey: environment.MAGIC_API_KEY,
+          })
           : undefined,
         injectedWallet({ chains, shimDisconnect }),
         rainbowWallet({ chains, shimDisconnect }),

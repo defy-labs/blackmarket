@@ -153,6 +153,7 @@ function Layout({ children }: PropsWithChildren<{}>) {
 
     // This will trigger when the user closed the widget
     transak.on('TRANSAK_WIDGET_CLOSE', (orderData) => {
+      console.log(orderData);
       transak.close();
     });
 

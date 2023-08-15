@@ -42,6 +42,8 @@ import environment from '../environment'
 import useAccount, { COOKIES, COOKIE_JWT_TOKEN } from '../hooks/useAccount'
 import useSigner from '../hooks/useSigner'
 import { theme } from '../styles/theme'
+import transakSDK from '@transak/transak-sdk';
+
 require('dayjs/locale/ja')
 require('dayjs/locale/zh-cn')
 require('dayjs/locale/es-mx')
@@ -128,6 +130,39 @@ function Layout({ children }: PropsWithChildren<{}>) {
     ].filter(Boolean)
   }, [router.locale, userProfileLink])
 
+  const launchTransakWidget = () => {
+    if (!environment.TRANSAK_API_KEY) return;
+
+    let transak = new transakSDK({
+      apiKey: environment.TRANSAK_API_KEY, // (Required)
+      environment: 'PRODUCTION', // (Required)
+      network: 'polygon',
+      cryptoCurrencyCode: 'MATIC',
+      walletAddress: address,
+      widgetHeight: '100%'
+      // .....
+      // For the full list of customisation options check the link above
+    });
+
+    transak.init();
+
+    // To get all the events
+    transak.on(transak.ALL_EVENTS, (data) => {
+      console.log(data);
+    });
+
+    // This will trigger when the user closed the widget
+    transak.on('TRANSAK_WIDGET_CLOSE', (orderData) => {
+      transak.close();
+    });
+
+    // This will trigger when the user marks payment is made
+    transak.on('TRANSAK_ORDER_SUCCESSFUL', (orderData) => {
+      console.log(orderData);
+      transak.close();
+    });
+  }
+
   return (
     <Box mt={12}>
       <Helmet>
@@ -135,6 +170,13 @@ function Layout({ children }: PropsWithChildren<{}>) {
           async
           src="https://widgets.coingecko.com/coingecko-coin-price-marquee-widget.js"
         ></script>
+        <style>
+          {`
+            #transak_modal {
+              height: 60%
+            }  
+          `}
+        </style>
       </Helmet>
       <Navbar
         allowTopUp={environment.ALLOW_TOP_UP}
@@ -183,18 +225,13 @@ function Layout({ children }: PropsWithChildren<{}>) {
           gap={{ base: 3, lg: 6 }}
           justifyContent="flex-end"
         >
-          <Link
-            href="https://info.quickswap.exchange/#/token/0xbf9f916bbda29a7f990f5f55c7607d94d7c3a60b"
-            isExternal
-          >
-            <Button>Buy $DEFY on Quickswap</Button>
-          </Link>
+          <Button onClick={() => { launchTransakWidget() }}>Buy MATIC</Button>
 
           <Link
             href="https://www.bybit.com/en-US/trade/spot/DEFY/USDT"
             isExternal
           >
-            <Button>Buy $DEFY on ByBit</Button>
+            <Button>Buy $DEFY</Button>
           </Link>
         </Flex>
       </Flex>

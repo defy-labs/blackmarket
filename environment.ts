@@ -30,6 +30,7 @@ type Environment = {
   CONTENTFUL_ACCESS_TOKEN: string
   CONTENTFUL_ENVIRONMENT_ID: string
   CONTENTFUL_SPACE_ID: string
+  TRANSAK_API_KEY: string | undefined
 }
 
 // magic api key
@@ -133,6 +134,7 @@ const environment: Environment = {
   CONTENTFUL_ACCESS_TOKEN: process.env.NEXT_PUBLIC_CONTENTFUL_ACCESS_TOKEN,
   CONTENTFUL_ENVIRONMENT_ID: process.env.NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT_ID,
   CONTENTFUL_SPACE_ID: process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID,
+  TRANSAK_API_KEY: process.env.NEXT_PUBLIC_TRANSAK_API_KEY
 }
 
 export default environment

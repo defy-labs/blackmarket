@@ -12,6 +12,7 @@ import {
 import { LiteflowProvider } from '@nft/hooks'
 import { lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css'
+import transakSDK from '@transak/transak-sdk'
 import dayjs from 'dayjs'
 import type { AppContext, AppInitialProps, AppProps } from 'next/app'
 import App from 'next/app'
@@ -42,7 +43,6 @@ import environment from '../environment'
 import useAccount, { COOKIES, COOKIE_JWT_TOKEN } from '../hooks/useAccount'
 import useSigner from '../hooks/useSigner'
 import { theme } from '../styles/theme'
-import transakSDK from '@transak/transak-sdk';
 
 require('dayjs/locale/ja')
 require('dayjs/locale/zh-cn')
@@ -131,37 +131,37 @@ function Layout({ children }: PropsWithChildren<{}>) {
   }, [router.locale, userProfileLink])
 
   const launchTransakWidget = () => {
-    if (!environment.TRANSAK_API_KEY) return;
+    if (!environment.TRANSAK_API_KEY) return
 
-    let transak = new transakSDK({
+    const transak = new transakSDK({
       apiKey: environment.TRANSAK_API_KEY, // (Required)
       environment: 'PRODUCTION', // (Required)
       network: 'polygon',
       cryptoCurrencyCode: 'MATIC',
       walletAddress: address,
-      widgetHeight: '100%'
+      widgetHeight: '100%',
       // .....
       // For the full list of customisation options check the link above
-    });
+    })
 
-    transak.init();
+    transak.init()
 
     // To get all the events
     transak.on(transak.ALL_EVENTS, (data) => {
-      console.log(data);
-    });
+      console.log(data)
+    })
 
     // This will trigger when the user closed the widget
     transak.on('TRANSAK_WIDGET_CLOSE', (orderData) => {
-      console.log(orderData);
-      transak.close();
-    });
+      console.log(orderData)
+      transak.close()
+    })
 
     // This will trigger when the user marks payment is made
     transak.on('TRANSAK_ORDER_SUCCESSFUL', (orderData) => {
-      console.log(orderData);
-      transak.close();
-    });
+      console.log(orderData)
+      transak.close()
+    })
   }
 
   return (
@@ -226,7 +226,13 @@ function Layout({ children }: PropsWithChildren<{}>) {
           gap={{ base: 3, lg: 6 }}
           justifyContent="flex-end"
         >
-          <Button onClick={() => { launchTransakWidget() }}>Buy MATIC</Button>
+          <Button
+            onClick={() => {
+              launchTransakWidget()
+            }}
+          >
+            Buy MATIC
+          </Button>
 
           <Link
             href="https://www.bybit.com/en-US/trade/spot/DEFY/USDT"

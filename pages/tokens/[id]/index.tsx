@@ -170,8 +170,8 @@ const DetailPage: NextPage<Props> = ({ now: nowProp }) => {
     return activeAuction
       ? activeAuction.offers.nodes.map(convertBidFull)
       : asset.bids.nodes.length > 0
-        ? asset.bids.nodes.map(convertBidFull)
-        : []
+      ? asset.bids.nodes.map(convertBidFull)
+      : []
   }, [activeAuction, asset])
 
   const directSales = useMemo(
@@ -351,12 +351,13 @@ const DetailPage: NextPage<Props> = ({ now: nowProp }) => {
                     {t('asset.detail.menu.refresh-metadata')}
                   </MenuItem>
                   <Link
-                    href={`mailto:${environment.REPORT_EMAIL
-                      }?subject=${encodeURI(
-                        t('asset.detail.menu.report.subject'),
-                      )}&body=${encodeURI(
-                        t('asset.detail.menu.report.body', asset),
-                      )}`}
+                    href={`mailto:${
+                      environment.REPORT_EMAIL
+                    }?subject=${encodeURI(
+                      t('asset.detail.menu.report.subject'),
+                    )}&body=${encodeURI(
+                      t('asset.detail.menu.report.body', asset),
+                    )}`}
                     isExternal
                   >
                     <MenuItem>{t('asset.detail.menu.report.label')}</MenuItem>

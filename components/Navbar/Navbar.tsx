@@ -32,7 +32,7 @@ import { Signer } from '@ethersproject/abstract-signer'
 import { useAddFund } from '@nft/hooks'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { FaBell } from '@react-icons/all-files/fa/FaBell'
-import { FaEnvelope } from '@react-icons/all-files/fa/FaEnvelope'
+// import { FaEnvelope } from '@react-icons/all-files/fa/FaEnvelope'
 import { HiChevronDown } from '@react-icons/all-files/hi/HiChevronDown'
 import { HiOutlineMenu } from '@react-icons/all-files/hi/HiOutlineMenu'
 import { HiOutlineSearch } from '@react-icons/all-files/hi/HiOutlineSearch'
@@ -347,7 +347,7 @@ const UserMenu: VFC<{
     addingFund: boolean
   }
   signOutFn: () => void
-}> = ({ account, user, topUp, signOutFn }) => {
+}> = ({ account, user, signOutFn }) => {
   const { t } = useTranslation('components')
   return (
     <Menu>

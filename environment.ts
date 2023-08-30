@@ -1,12 +1,6 @@
 import invariant from 'ts-invariant'
 import {
-  bsc,
-  bscTestnet,
-  Chain,
-  goerli as ethereumGoerli,
-  mainnet as ethereumMainnet,
   polygon,
-  polygonMumbai,
 } from 'wagmi/chains'
 
 invariant(process.env.NEXT_PUBLIC_BASE_URL, 'Base url is not defined')

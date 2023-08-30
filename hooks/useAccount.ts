@@ -68,9 +68,9 @@ export default function useAccount(): AccountDetail {
         ...COOKIE_OPTIONS,
         ...(newJwt.exp
           ? {
-              expires: new Date((newJwt.exp - 1) * 1000),
-              maxAge: newJwt.exp - Math.ceil(Date.now() / 1000),
-            }
+            expires: new Date((newJwt.exp - 1) * 1000),
+            maxAge: newJwt.exp - Math.ceil(Date.now() / 1000),
+          }
           : {}),
       })
     },

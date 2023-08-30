@@ -1,7 +1,7 @@
 import { ApolloProvider } from '@apollo/client'
 import Bugsnag from '@bugsnag/js'
 import BugsnagPluginReact from '@bugsnag/plugin-react'
-import { Box, ChakraProvider } from '@chakra-ui/react'
+import { Box, Button, ChakraProvider, Flex, Link } from '@chakra-ui/react'
 import { LiteflowProvider } from '@liteflow/react'
 import { RainbowKitProvider, lightTheme } from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css'
@@ -11,6 +11,8 @@ import App from 'next/app'
 import { useRouter } from 'next/router'
 import { GoogleAnalytics, usePageViews } from 'nextjs-google-analytics'
 import NProgress from 'nprogress'
+import { Helmet } from 'react-helmet'
+import transakSDK from '@transak/transak-sdk'
 import 'nprogress/nprogress.css'
 import React, {
   ComponentType,
@@ -55,50 +57,121 @@ function Layout({ children }: PropsWithChildren<{}>) {
         explore: 'Explore',
         create: 'Create',
         profile: 'Profile',
+        referral: 'Referral',
         support: 'Support',
         terms: 'Terms',
         privacy: 'Privacy',
+        about: 'About',
+        bridge: 'Token Bridge',
+        twitter: 'Twitter',
+        discord: 'Discord',
       },
       ja: {
         explore: '検索',
         create: '作成',
         profile: 'プロフィール',
+        referral: '紹介',
         support: 'サポート',
         terms: '利用規約',
         privacy: 'プライバシーポリシー',
+        about: 'About',
+        bridge: 'Token Bridge',
+        twitter: 'Twitter',
+        discord: 'Discord',
       },
       'zh-cn': {
         explore: '探讨',
         create: '创造',
         profile: '资料',
+        referral: '转介',
         support: '支持',
         terms: '条款',
         privacy: '隐私',
+        about: 'About',
+        bridge: 'Token Bridge',
+        twitter: 'Twitter',
+        discord: 'Discord',
       },
       'es-mx': {
         explore: 'Explorar',
         create: 'Crear',
         profile: 'Perfil',
+        referral: 'Recomendación',
         support: 'Apoyo',
         terms: 'Letra chica',
         privacy: 'Privacidad',
+        about: 'About',
+        bridge: 'Token Bridge',
+        twitter: 'Twitter',
+        discord: 'Discord',
       },
     }
     const locale = (router.locale || 'en') as keyof typeof texts
     return [
       { href: '/explore', label: texts[locale].explore },
-      { href: '/create', label: texts[locale].create },
       { href: userProfileLink, label: texts[locale].profile },
-      { href: '/', label: texts[locale].support },
-      { href: '/', label: texts[locale].terms },
-      { href: '/', label: texts[locale].privacy },
-      { href: 'https://twitter.com', label: 'Twitter' },
-      { href: 'https://discord.com', label: 'Discord' },
+      { href: 'mailto:support@defylabs.xyz', label: texts[locale].support },
+      { href: 'https://defydisrupt.io/', label: texts[locale].about },
+      { href: 'https://bridge.defydisrupt.io/', label: texts[locale].bridge },
+      { href: 'https://defydisrupt.io/terms/', label: texts[locale].terms },
+      { href: 'https://defydisrupt.io/privacy/', label: texts[locale].privacy },
+      {
+        href: 'https://twitter.com/defydisrupt/',
+        label: texts[locale].twitter,
+      },
+      { href: 'https://discord.gg/defydisrupt', label: texts[locale].discord },
     ].filter(Boolean)
   }, [router.locale, userProfileLink])
 
+  const launchTransakWidget = () => {
+    if (!environment.TRANSAK_API_KEY) return
+
+    const transak = new transakSDK({
+      apiKey: environment.TRANSAK_API_KEY, // (Required)
+      environment: 'PRODUCTION', // (Required)
+      network: 'polygon',
+      cryptoCurrencyCode: 'MATIC',
+      walletAddress: address,
+      widgetHeight: '100%',
+      // .....
+      // For the full list of customisation options check the link above
+    })
+
+    transak.init()
+
+    // To get all the events
+    transak.on(transak.ALL_EVENTS, (data) => {
+      console.log(data)
+    })
+
+    // This will trigger when the user closed the widget
+    transak.on('TRANSAK_WIDGET_CLOSE', (orderData) => {
+      console.log(orderData)
+      transak.close()
+    })
+
+    // This will trigger when the user marks payment is made
+    transak.on('TRANSAK_ORDER_SUCCESSFUL', (orderData) => {
+      console.log(orderData)
+      transak.close()
+    })
+  }
+
   return (
     <Box>
+      <Helmet>
+        <script
+          async
+          src="https://widgets.coingecko.com/coingecko-coin-price-marquee-widget.js"
+        ></script>
+        <style>
+          {`
+            #transak_modal {
+              height: 60%
+            }  
+          `}
+        </style>
+      </Helmet>
       <Navbar
         multiLang={{
           locale: router.locale,
@@ -111,7 +184,62 @@ function Layout({ children }: PropsWithChildren<{}>) {
           ],
         }}
       />
+      <Flex
+        mx="auto"
+        mt={4}
+        gap={{ base: 3, lg: 6 }}
+        direction={{ base: 'column', md: 'row' }}
+        px={{ base: 6, lg: 8 }}
+        maxW="7xl"
+        alignItems="center"
+      >
+        <Flex maxW="100%" overflow="hidden">
+          {React.createElement('coingecko-coin-price-marquee-widget', {
+            'coin-ids': 'defy,ethereum',
+            currency: 'usd',
+            locale: 'en',
+            'background-color': '#ffffff',
+            style: { width: '100%' },
+          })}
+        </Flex>
+
+        <Flex
+          align="center"
+          flexWrap={{ base: 'wrap', md: 'nowrap' }}
+          gap={{ base: 3, lg: 6 }}
+          justifyContent="flex-end"
+        >
+          <Button
+            onClick={() => {
+              launchTransakWidget()
+            }}
+          >
+            Buy MATIC
+          </Button>
+
+          <Link
+            href="https://www.bybit.com/en-US/trade/spot/DEFY/USDT"
+            isExternal
+          >
+            <Button>Buy $DEFY</Button>
+          </Link>
+        </Flex>
+      </Flex>
       {children}
+      <Flex justifyContent={'center'}>
+        <script
+          async
+          src="https://widgets.coingecko.com/coingecko-coin-price-chart-widget.js"
+        ></script>
+        {React.createElement('coingecko-coin-price-chart-widget', {
+          'coin-id': 'defy',
+          currency: 'usd',
+          height: '300',
+          width: '400',
+          locale: 'en',
+          'background-color': '#ffffff',
+        })}
+      </Flex>
       <Footer name={environment.META_COMPANY_NAME} links={footerLinks} />
     </Box>
   )

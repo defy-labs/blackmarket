@@ -1,4 +1,4 @@
-import { MagicConnectConnector } from '@everipedia/wagmi-magic-connector'
+import { MagicAuthConnector } from '@magiclabs/wagmi-connector'
 import {
   connectorsForWallets,
   Wallet,
@@ -13,17 +13,10 @@ import {
   walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets'
 import { Chain, configureChains, Connector, createConfig } from 'wagmi'
-import {
-  bsc,
-  bscTestnet,
-  goerli,
-  mainnet,
-  polygon,
-  polygonMumbai,
-} from 'wagmi/chains'
 import { alchemyProvider } from 'wagmi/providers/alchemy'
 import { publicProvider } from 'wagmi/providers/public'
 import environment from './environment'
+import { theme } from 'styles/theme'
 
 const providers = [publicProvider()]
 // add alchemy provider as fallback if ALCHEMY_API_KEY is set
@@ -96,28 +89,21 @@ function emailConnector({
 }): Wallet {
   return {
     id: 'magic',
-    name: 'Magic',
-    iconUrl: '/magic.svg',
+    name: 'DEFY App',
+    iconUrl: '/defy.jpg',
     iconBackground: '#fff',
     createConnector: () => {
-      const connector = new MagicConnectConnector({
+      const connector = new MagicAuthConnector({
         chains: chains,
         options: {
           apiKey: apiKey,
-          networks: [
-            { chainId: mainnet.id, rpcUrl: 'https://rpc.ankr.com/eth' },
-            { chainId: goerli.id, rpcUrl: 'https://rpc.ankr.com/eth_goerli' },
-            { chainId: polygon.id, rpcUrl: 'https://rpc.ankr.com/polygon' },
-            {
-              chainId: polygonMumbai.id,
-              rpcUrl: 'https://rpc.ankr.com/polygon_mumbai',
-            },
-            { chainId: bsc.id, rpcUrl: 'https://rpc.ankr.com/bsc' },
-            {
-              chainId: bscTestnet.id,
-              rpcUrl: 'https://rpc.ankr.com/bsc_testnet_chapel',
-            },
-          ],
+          accentColor: theme.colors.brand[500],
+          customHeaderText: 'DEFY App',
+          customLogo: '/defy.jpg',
+          oauthOptions: {
+            providers: ['facebook', 'google', 'twitter', 'discord', 'apple'],
+            callbackUrl: 'https://blackmarket.defydisrupt.io',
+          },
         },
       }) as unknown as Connector
       return {

@@ -17,10 +17,10 @@ const CollectionCard: FC<Props> = ({ collection }) => {
   const convertValue = (value: string | null, symbol: string | null) => {
     const formattedValue = value
       ? numbro(value).format({
-          thousandSeparated: true,
-          trimMantissa: true,
-          mantissa: 4,
-        })
+        thousandSeparated: true,
+        trimMantissa: true,
+        mantissa: 2,
+      })
       : '-'
     return `${value ? formattedValue : '-'} ${symbol ? symbol : ''}`
   }
@@ -85,7 +85,7 @@ const CollectionCard: FC<Props> = ({ collection }) => {
         >
           {collection.name}
         </Heading>
-        <SimpleGrid columns={2} spacing={3} w="full">
+        <SimpleGrid columns={1} spacing={3} w="full">
           <Box>
             <Text
               variant="subtitle2"
@@ -109,7 +109,7 @@ const CollectionCard: FC<Props> = ({ collection }) => {
               )}
             </Text>
           </Box>
-          <Box>
+          {/* <Box>
             <Text
               variant="subtitle2"
               color="gray.500"
@@ -131,7 +131,7 @@ const CollectionCard: FC<Props> = ({ collection }) => {
                 collection.floorPriceCurrencySymbol,
               )}
             </Text>
-          </Box>
+          </Box> */}
         </SimpleGrid>
       </VStack>
     </Box>

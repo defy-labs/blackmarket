@@ -86,73 +86,7 @@ const environment = {
 
   // List of supported chains. Liteflow is supporting the following: ethereumMainnet, ethereumGoerli, bscTestnet, bsc, polygon, polygonMumbai
   CHAINS: [
-    ethereumMainnet,
-    ethereumGoerli,
-    bscTestnet,
-    bsc,
     polygon,
-    polygonMumbai,
-    {
-      name: 'LightLink Phoenix',
-      network: 'lightlink-phoenix',
-      id: 1890,
-      nativeCurrency: {
-        decimals: 18,
-        name: 'Ether',
-        symbol: 'ETH',
-      },
-      rpcUrls: {
-        default: {
-          http: [
-            'https://replicator-01.phoenix.lightlink.io/rpc/v1',
-            'https://replicator-02.phoenix.lightlink.io/rpc/v1',
-          ],
-        },
-        public: {
-          http: [
-            'https://replicator-01.phoenix.lightlink.io/rpc/v1',
-            'https://replicator-02.phoenix.lightlink.io/rpc/v1',
-          ],
-        },
-      },
-      blockExplorers: {
-        default: {
-          name: 'LightLink Phoenix Explorer',
-          url: 'https://phoenix.lightlink.io',
-        },
-      },
-    } as Chain,
-    {
-      name: 'LightLink Pegasus Testnet',
-      network: 'lightlink-pegasus',
-      testnet: true,
-      id: 1891,
-      nativeCurrency: {
-        decimals: 18,
-        name: 'Ether',
-        symbol: 'ETH',
-      },
-      rpcUrls: {
-        default: {
-          http: [
-            'https://replicator-01.pegasus.lightlink.io/rpc/v1',
-            'https://replicator-02.pegasus.lightlink.io/rpc/v1',
-          ],
-        },
-        public: {
-          http: [
-            'https://replicator-01.pegasus.lightlink.io/rpc/v1',
-            'https://replicator-02.pegasus.lightlink.io/rpc/v1',
-          ],
-        },
-      },
-      blockExplorers: {
-        default: {
-          name: 'LightLink Pegasus Explorer',
-          url: 'https://pegasus.lightlink.io',
-        },
-      },
-    } as Chain,
   ],
 
   // Wallet connect project ID, you can get one at https://cloud.walletconnect.com/
@@ -164,18 +98,20 @@ const environment = {
   // (Optional) Alchemy API key to activate fallback if public providers are not responsive
   ALCHEMY_API_KEY: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY,
 
+  DRONE_COLLECTION_ADDRESS: process.env.NEXT_PUBLIC_DRONE_COLLECTION_ADDRESS,
+
   /**
    * SEO Configuration
    */
 
   // Name of the company to place in the SEO title and in the footer
-  META_COMPANY_NAME: 'Acme, Inc.',
+  META_COMPANY_NAME: 'DEFY Labs Pte Ltd.',
 
   // Title of the marketplace to place in the SEO title
-  META_TITLE: 'Acme NFT Marketplace',
+  META_TITLE: 'DEFY Blackmarket',
 
   // Description of the marketplace to place in the SEO description
-  META_DESCRIPTION: 'Acme NFT Marketplace',
+  META_DESCRIPTION: 'Buy and sell your DEFY assets with other operatives',
 
   // Keywords of the marketplace to place in the SEO keywords
   META_KEYWORDS: 'NFT, marketplace, platform, blockchain, liteflow',
@@ -188,6 +124,11 @@ const environment = {
 
   // Enable/disable the unlockable content feature. If enabled, the NFTs will have unlockable content only accessible to owners
   UNLOCKABLE_CONTENT: false,
+
+  TRANSAK_API_KEY: process.env.NEXT_PUBLIC_TRANSAK_API_KEY,
+  CONTENTFUL_ACCESS_TOKEN: process.env.NEXT_PUBLIC_CONTENTFUL_ACCESS_TOKEN,
+  CONTENTFUL_ENVIRONMENT_ID: process.env.NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT_ID,
+  CONTENTFUL_SPACE_ID: process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID,
 }
 
 export default environment

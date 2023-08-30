@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react'
 import { HiArrowNarrowRight } from '@react-icons/all-files/hi/HiArrowNarrowRight'
 import useTranslation from 'next-translate/useTranslation'
-import { FC, useMemo } from 'react'
+import { FC, useEffect, useMemo, useState } from 'react'
 import {
   convertAsset,
   convertAuctionWithBestBid,
@@ -29,43 +29,35 @@ import Link from '../Link/Link'
 import SkeletonGrid from '../Skeleton/Grid'
 import SkeletonTokenCard from '../Skeleton/TokenCard'
 import TokenCard from '../Token/Card'
+import { getContentfulClient } from 'client'
+import { ContentfulHomePageDocument, ContentfulHomePageQuery } from 'contentful-graphql'
 
 type Props = {
   date: Date
 }
 
 const AssetsHomeSection: FC<Props> = ({ date }) => {
+  const [featuredTokens, setFeaturedTokens] = useState<string[]>([])
+
+  useEffect(() => {
+    const contentfulClient = getContentfulClient();
+    contentfulClient?.query<ContentfulHomePageQuery>({
+      query: ContentfulHomePageDocument,
+    }).then(r => setFeaturedTokens(r.data.homePage?.notableTokens as string[] ?? []))
+  }, [])
+
+
   const { address } = useAccount()
   const { t } = useTranslation('templates')
   const defaultAssetQuery = useFetchDefaultAssetIdsQuery({
     variables: { limit: environment.PAGINATION_LIMIT },
-    skip: environment.HOME_TOKENS.length > 0,
+    skip: featuredTokens.length > 0,
   })
   useHandleQueryError(defaultAssetQuery)
   const defaultAssetData = defaultAssetQuery.data
 
   const assetIds = useMemo(() => {
-    if (environment.HOME_TOKENS.length > 0) {
-      // Pseudo randomize the array based on the date's seconds
-      const tokens = [...environment.HOME_TOKENS]
-
-      const seed = date.getTime() / 1000 // convert to seconds as date is currently truncated to the second
-      const randomTokens: string[] = []
-      while (
-        tokens.length &&
-        randomTokens.length < environment.PAGINATION_LIMIT
-      ) {
-        // generate random based on seed and length of the remaining tokens array
-        // It will change when seed changes (basically every request) and also on each iteration of the loop as length of tokens changes
-        const randomIndex = seed % tokens.length
-        // remove the element from tokens
-        const element = tokens.splice(randomIndex, 1)
-        // push the element into the returned array in order
-        randomTokens.push(...element)
-      }
-      return randomTokens
-    }
-    return defaultAssetData?.assets?.nodes.map((x) => x.id)
+    return featuredTokens
   }, [defaultAssetData, date])
 
   const assetsQuery = useFetchAssetsQuery({

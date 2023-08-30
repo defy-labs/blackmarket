@@ -7,7 +7,7 @@ import {
   Spacer,
   Stack,
 } from '@chakra-ui/react'
-import { FC, useCallback, useMemo } from 'react'
+import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import {
   convertAssetWithSupplies,
   convertAuctionFull,
@@ -27,12 +27,15 @@ import { useOrderByKey } from '../../hooks/useOrderByKey'
 import useSigner from '../../hooks/useSigner'
 import Slider from '../Slider/Slider'
 import TokenHeader from '../Token/Header'
+import { getContentfulClient } from 'client'
+import { ContentfulHomePageDocument, ContentfulHomePageQuery } from 'contentful-graphql'
 
 type Props = {
   date: Date
 }
 
 const FeaturedHomeSection: FC<Props> = ({ date }) => {
+  const [featuredTokens, setFeaturedTokens] = useState<string[]>([])
   const signer = useSigner()
   const { address } = useAccount()
   const currenciesQuery = useFetchCurrenciesForBidsQuery({
@@ -40,7 +43,7 @@ const FeaturedHomeSection: FC<Props> = ({ date }) => {
   })
   const featureAssetsQuery = useFetchFeaturedAssetsQuery({
     variables: {
-      featuredIds: environment.FEATURED_TOKEN,
+      featuredIds: featuredTokens,
       now: date,
       address: address || '',
     },
@@ -50,14 +53,21 @@ const FeaturedHomeSection: FC<Props> = ({ date }) => {
   useHandleQueryError(currenciesQuery)
 
   const featured = useOrderByKey(
-    environment.FEATURED_TOKEN,
+    featuredTokens,
     featureAssetsQuery.data?.assets?.nodes,
     (asset) => asset.id,
   )
 
+  useEffect(() => {
+    const contentfulClient = getContentfulClient();
+    contentfulClient?.query<ContentfulHomePageQuery>({
+      query: ContentfulHomePageDocument,
+    }).then(r => setFeaturedTokens(r.data.homePage?.featuredTokens as string[] ?? []))
+  }, [])
+
   const reloadInfo = useCallback(async () => {
     void featureAssetsQuery.refetch()
-  }, [featureAssetsQuery])
+  }, [featureAssetsQuery, featuredTokens])
 
   const featuredAssets = useMemo(
     () =>
@@ -87,7 +97,7 @@ const FeaturedHomeSection: FC<Props> = ({ date }) => {
           onAuctionAccepted={reloadInfo}
         />
       )),
-    [featured, address, signer, reloadInfo, currenciesQuery],
+    [featured, address, signer, reloadInfo, currenciesQuery, featuredTokens],
   )
 
   if (!environment.FEATURED_TOKEN.length) return null

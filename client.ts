@@ -1,6 +1,7 @@
 import {
   ApolloClient,
   from,
+  createHttpLink,
   HttpLink,
   InMemoryCache,
   NormalizedCacheObject,
@@ -13,6 +14,22 @@ const isServer = typeof window === 'undefined'
 const windowApolloState = !isServer && window.__NEXT_DATA__.props.apolloState
 
 let _client: ApolloClient<NormalizedCacheObject>
+
+export function getContentfulClient(): ApolloClient<NormalizedCacheObject> {
+  const httpLink = createHttpLink({
+    uri: `https://graphql.contentful.com/content/v1/spaces/${environment.CONTENTFUL_SPACE_ID}/environments/${environment.CONTENTFUL_ENVIRONMENT_ID}`,
+    headers: {
+      authorization: `Bearer ${environment.CONTENTFUL_ACCESS_TOKEN}`,
+      'Content-Language': 'en-us',
+    },
+  })
+
+  return new ApolloClient({
+    link: httpLink,
+    cache: new InMemoryCache(),
+    ssrMode: true,
+  })
+}
 
 export default function getClient(
   authorization: string | null,
@@ -40,9 +57,8 @@ export default function getClient(
   })
 
   const httpLink = new HttpLink({
-    uri: `${
-      process.env.NEXT_PUBLIC_LITEFLOW_BASE_URL || 'https://api.liteflow.com'
-    }/${environment.LITEFLOW_API_KEY}/graphql`,
+    uri: `${process.env.NEXT_PUBLIC_LITEFLOW_BASE_URL || 'https://api.liteflow.com'
+      }/${environment.LITEFLOW_API_KEY}/graphql`,
     headers: {
       ...(authorization ? { authorization: `Bearer ${authorization}` } : {}),
       origin: environment.BASE_URL,

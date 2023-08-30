@@ -331,13 +331,12 @@ const DetailPage: NextPage<Props> = ({ now: nowProp }) => {
                       {t('asset.detail.menu.refresh-metadata')}
                     </MenuItem>
                     <Link
-                      href={`mailto:${
-                        environment.REPORT_EMAIL
-                      }?subject=${encodeURI(
-                        t('asset.detail.menu.report.subject'),
-                      )}&body=${encodeURI(
-                        t('asset.detail.menu.report.body', asset),
-                      )}`}
+                      href={`mailto:${environment.REPORT_EMAIL
+                        }?subject=${encodeURI(
+                          t('asset.detail.menu.report.subject'),
+                        )}&body=${encodeURI(
+                          t('asset.detail.menu.report.body', asset),
+                        )}`}
                       isExternal
                     >
                       <MenuItem>{t('asset.detail.menu.report.label')}</MenuItem>
@@ -557,6 +556,23 @@ const DetailPage: NextPage<Props> = ({ now: nowProp }) => {
           </>
         )}
       </SimpleGrid>
+      {asset?.collectionAddress === environment.DRONE_COLLECTION_ADDRESS && (
+        <Flex width="100%" my={{ base: 12, md: 20 }}>
+          <Box width="100%">
+            <AspectRatio
+              ratio={16 / 9}
+              rounded={{ base: 'sm', md: 'xl' }}
+              overflow="hidden"
+            >
+              <iframe
+                width="100%"
+                height="100%"
+                src={`https://configurator.defydisrupt.io/drone.html?v=drone_${asset?.tokenId}`}
+              />
+            </AspectRatio>
+          </Box>
+        </Flex>
+      )}
     </LargeLayout>
   )
 }

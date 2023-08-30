@@ -3,7 +3,7 @@ import { convertCollection } from 'convert'
 import environment from 'environment'
 import { useOrderByKey } from 'hooks/useOrderByKey'
 import useTranslation from 'next-translate/useTranslation'
-import { FC } from 'react'
+import { FC, useEffect, useState } from 'react'
 import invariant from 'ts-invariant'
 import {
   CollectionFilter,
@@ -12,11 +12,24 @@ import {
 } from '../../graphql'
 import useHandleQueryError from '../../hooks/useHandleQueryError'
 import HomeGridSection from './Grid'
+import { getContentfulClient } from 'client'
+import { ContentfulHomePageDocument, ContentfulHomePageQuery } from 'contentful-graphql'
 
 type Props = {}
 
 const CollectionsHomeSection: FC<Props> = () => {
+  const [featuredCollections, setFeaturedCollections] = useState<string[]>()
+  environment.HOME_COLLECTIONS = featuredCollections ?? []
+
   const { t } = useTranslation('templates')
+
+  useEffect(() => {
+    const contentfulClient = getContentfulClient();
+    contentfulClient?.query<ContentfulHomePageQuery>({
+      query: ContentfulHomePageDocument,
+    }).then(r => setFeaturedCollections(r.data.homePage?.featuredCollectionsCollection?.items.map(i => i?.collectionAddress) as string[] ?? []))
+  }, [])
+
   const collectionsQuery = useFetchCollectionsQuery({
     variables: {
       filter: {

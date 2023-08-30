@@ -424,17 +424,6 @@ const Navbar: FC<{
               {t('navbar.explore')}
             </Text>
           </Flex>
-          <Flex
-            as={Link}
-            href="/create"
-            color="brand.black"
-            align="center"
-            _hover={{ color: 'gray.500' }}
-          >
-            <Text as="span" variant="button2">
-              {t('navbar.create')}
-            </Text>
-          </Flex>
           {account ? (
             <HStack spacing={2}>
               <ActivityMenu account={account.address} />

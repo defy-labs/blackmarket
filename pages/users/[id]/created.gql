@@ -6,49 +6,21 @@ query FetchCreatedAssets(
   $offset: Int!
   $orderBy: [AssetsOrderBy!]
 ) {
-  account(address: $address) {
-    ...AccountDetail
-  }
   created: assets(
-    filter: { ownershipsExist: true, creatorAddress: { equalTo: $address } }
+    filter: {
+      quantity: { greaterThan: "0" }
+      creatorAddress: { equalTo: $address }
+    }
     first: $limit
     offset: $offset
     orderBy: $orderBy
   ) {
-    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
     nodes {
       ...AssetDetail
     }
-  }
-  onSale: assets(
-    filter: {
-      ownershipsExist: true
-      or: [
-        {
-          sales: {
-            some: {
-              expiredAt: { greaterThan: $now }
-              makerAddress: { equalTo: $address }
-              availableQuantity: { greaterThan: "0" }
-            }
-          }
-        }
-        {
-          auctions: {
-            some: {
-              endAt: { greaterThan: $now }
-              creatorAddress: { equalTo: $address }
-            }
-          }
-        }
-      ]
-    }
-  ) {
-    totalCount
-  }
-  owned: ownerships(
-    filter: { ownerAddress: { equalTo: $address }, assetExists: true }
-  ) {
-    totalCount
   }
 }

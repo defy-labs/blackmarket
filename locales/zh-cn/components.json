@@ -6,6 +6,13 @@
       "edit-profile": "编辑个人资料"
     }
   },
+  "network": {
+    "button": {
+      "sign-in": "登录",
+      "signing-in": "登录中...",
+      "switch-network": "交换网络"
+    }
+  },
   "bid": {
     "list": {
       "none": "无出价"
@@ -74,6 +81,16 @@
     "collections": {
       "chains": {
         "label": "链"
+      },
+      "empty": {
+        "title": "未找到收藏",
+        "description": "请更新筛选条件来查找更多收藏。"
+      }
+    },
+    "traits": {
+      "empty": {
+        "title": "未发现特征",
+        "description": "更新您的过滤器以发现更多特征。"
       }
     },
     "assets": {
@@ -484,6 +501,9 @@
       }
     }
   },
+  "pagination": {
+    "label": "每页结果数"
+  },
   "referral": {
     "form": {
       "connect": "登录以生成您的推荐链接",
@@ -659,7 +679,7 @@
       },
       "modal": {
         "title": "可用要约",
-        "button": "买"
+        "button": "查看要约"
       },
       "modal-item": {
         "cancel-confirmation": "确定要取消要约吗？",
@@ -806,8 +826,7 @@
     },
     "referral": {
       "title": "推荐创作者",
-      "description": "将您的推荐链接分享给新的创作者并获得奖励。",
-      "how": "用法"
+      "description": "分享您的推荐链接以加入新用户"
     },
     "navigation": {
       "on-sale": "售卖中",
@@ -887,9 +906,5 @@
     "balances": {
       "none": "无可用余额。"
     }
-  },
-  "welcomeModal": {
-    "title": "Welcome to the DEFY Black Market.",
-    "description": "This is a peer to peer trading platform allowing DEFY operatives to buy and sell materials, equipment and tools that enhance your game play in DEFY.\n\nMost in game items are user collected via the map or generated via the nanoforge. Get out, explore and find those materials. There's something super rare somewhere around you right now…\n\nHere, you’ll find everything you need to take your gameplay to the next level and a market to sell your excess items to other operatives. The revolution depends us working together.\n\nGood Hunting Operatives!"
   }
 }

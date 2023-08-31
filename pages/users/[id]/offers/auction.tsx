@@ -14,15 +14,14 @@ import {
   Tr,
   useToast,
 } from '@chakra-ui/react'
-import { dateFromNow, formatError, useIsLoggedIn } from '@nft/hooks'
+import { BigNumber } from '@ethersproject/bignumber'
+import { useIsLoggedIn } from '@liteflow/react'
 import { HiOutlineSearch } from '@react-icons/all-files/hi/HiOutlineSearch'
 import { NextPage } from 'next'
-import Trans from 'next-translate/Trans'
 import useTranslation from 'next-translate/useTranslation'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
 import Empty from '../../../../components/Empty/Empty'
-import Head from '../../../../components/Head'
 import Image from '../../../../components/Image/Image'
 import Link from '../../../../components/Link/Link'
 import Loader from '../../../../components/Loader'
@@ -35,25 +34,19 @@ import Select from '../../../../components/Select/Select'
 import {
   convertAuctionFull,
   convertAuctionWithBestBid,
-  convertFullUser,
 } from '../../../../convert'
 import environment from '../../../../environment'
 import { AuctionsOrderBy, useFetchUserAuctionsQuery } from '../../../../graphql'
 import useAccount from '../../../../hooks/useAccount'
-import useEagerConnect from '../../../../hooks/useEagerConnect'
 import useOrderByQuery from '../../../../hooks/useOrderByQuery'
 import usePaginate from '../../../../hooks/usePaginate'
 import usePaginateQuery from '../../../../hooks/usePaginateQuery'
 import useRequiredQueryParamSingle from '../../../../hooks/useRequiredQueryParamSingle'
 import useSigner from '../../../../hooks/useSigner'
 import LargeLayout from '../../../../layouts/large'
+import { dateFromNow, formatError } from '../../../../utils'
 
-type Props = {
-  now: string
-}
-
-const AuctionPage: NextPage<Props> = ({ now }) => {
-  useEagerConnect()
+const AuctionPage: NextPage = () => {
   const signer = useSigner()
   const { t } = useTranslation('templates')
   const { replace, pathname, query } = useRouter()
@@ -65,31 +58,23 @@ const AuctionPage: NextPage<Props> = ({ now }) => {
   const userAddress = useRequiredQueryParamSingle('id')
   const ownerLoggedIn = useIsLoggedIn(userAddress)
 
-  const date = useMemo(() => new Date(now), [now])
-  const { data, refetch, loading } = useFetchUserAuctionsQuery({
+  const { data, refetch } = useFetchUserAuctionsQuery({
     variables: {
       address: userAddress,
       limit,
       offset,
       orderBy,
-      now: date,
     },
   })
 
-  const userAccount = useMemo(
-    () => convertFullUser(data?.account || null, userAddress),
-    [data, userAddress],
-  )
-
   const auctions = useMemo(
     () =>
-      (data?.auctions?.nodes || []).map((x) => ({
+      data?.auctions?.nodes.map((x) => ({
         ...convertAuctionWithBestBid(x),
         ...convertAuctionFull(x),
         asset: x.asset,
         createdAt: new Date(x.createdAt),
-        ownAsset:
-          parseInt(x.asset.ownerships.aggregates?.sum?.quantity || '0', 10) > 0,
+        ownAsset: BigNumber.from(x.asset.owned?.quantity || 0).gt(0),
       })),
     [data],
   )
@@ -116,27 +101,13 @@ const AuctionPage: NextPage<Props> = ({ now }) => {
     [replace, pathname, query],
   )
 
-  if (loading) return <Loader fullPage />
   return (
     <LargeLayout>
-      <Head
-        title={userAccount?.name || userAddress}
-        description={userAccount?.description || ''}
-        image={userAccount?.image || ''}
-      />
-
       <UserProfileTemplate
         signer={signer}
         currentAccount={address}
-        account={userAccount}
+        address={userAddress}
         currentTab="offers"
-        totals={
-          new Map([
-            ['created', data?.created?.totalCount || 0],
-            ['on-sale', data?.onSale?.totalCount || 0],
-            ['owned', data?.owned?.totalCount || 0],
-          ])
-        }
         loginUrlForReferral={environment.BASE_URL + '/login'}
       >
         <Stack spacing={6}>
@@ -199,111 +170,102 @@ const AuctionPage: NextPage<Props> = ({ now }) => {
             </Box>
           </Flex>
 
-          <TableContainer bg="white" shadow="base" rounded="lg">
-            <Table>
-              <Thead>
-                <Tr>
-                  <Th>{t('user.auctions.table.item')}</Th>
-                  <Th isNumeric>{t('user.auctions.table.price')}</Th>
-                  <Th>{t('user.auctions.table.status')}</Th>
-                  <Th>{t('user.auctions.table.created')}</Th>
-                  <Th isNumeric></Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {auctions.map((item) => (
-                  <Tr fontSize="sm" key={item.id}>
-                    <Td>
-                      <Flex as={Link} href={`/tokens/${item.asset.id}`} gap={3}>
-                        <Image
-                          src={item.asset.image}
-                          alt={item.asset.name}
-                          width={40}
-                          height={40}
-                          layout="fixed"
-                          objectFit="cover"
-                          rounded="full"
-                          h={10}
-                          w={10}
-                        />
+          {auctions === undefined ? (
+            <Loader />
+          ) : auctions.length > 0 ? (
+            <TableContainer bg="white" shadow="base" rounded="lg">
+              <Table>
+                <Thead>
+                  <Tr>
+                    <Th>{t('user.auctions.table.item')}</Th>
+                    <Th isNumeric>{t('user.auctions.table.price')}</Th>
+                    <Th>{t('user.auctions.table.status')}</Th>
+                    <Th>{t('user.auctions.table.created')}</Th>
+                    <Th isNumeric></Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {auctions.map((item) => (
+                    <Tr fontSize="sm" key={item.id}>
+                      <Td>
                         <Flex
-                          my="auto"
-                          direction="column"
-                          title={item.asset.name}
+                          as={Link}
+                          href={`/tokens/${item.asset.id}`}
+                          gap={3}
                         >
-                          <Text as="span" noOfLines={1}>
-                            {item.asset.name}
-                          </Text>
+                          <Image
+                            src={item.asset.image}
+                            alt={item.asset.name}
+                            width={40}
+                            height={40}
+                            h={10}
+                            w={10}
+                            objectFit="cover"
+                            rounded="2xl"
+                          />
+                          <Flex
+                            my="auto"
+                            direction="column"
+                            title={item.asset.name}
+                          >
+                            <Text as="span" noOfLines={1}>
+                              {item.asset.name}
+                            </Text>
+                          </Flex>
                         </Flex>
-                      </Flex>
-                    </Td>
-                    <Td isNumeric>
-                      {item.bestBid ? (
-                        <Text
-                          as={Price}
-                          noOfLines={1}
-                          amount={item.bestBid.unitPrice}
-                          currency={item.bestBid.currency}
-                        />
-                      ) : (
-                        '-'
-                      )}
-                    </Td>
-                    <Td>
-                      <SaleAuctionStatus
-                        auction={item}
-                        bestBid={item.bestBid}
-                      />
-                    </Td>
-                    <Td>{dateFromNow(item.createdAt)}</Td>
-                    <Td isNumeric>
-                      {ownerLoggedIn && item.ownAsset && (
-                        <SaleAuctionAction
-                          signer={signer}
+                      </Td>
+                      <Td isNumeric>
+                        {item.bestBid ? (
+                          <Text
+                            as={Price}
+                            noOfLines={1}
+                            amount={item.bestBid.unitPrice}
+                            currency={item.bestBid.currency}
+                          />
+                        ) : (
+                          '-'
+                        )}
+                      </Td>
+                      <Td>
+                        <SaleAuctionStatus
                           auction={item}
                           bestBid={item.bestBid}
-                          onAuctionAccepted={onAuctionAccepted}
                         />
-                      )}
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-            {auctions.length === 0 && (
-              <Empty
-                icon={
-                  <Icon as={HiOutlineSearch} w={8} h={8} color="gray.400" />
-                }
-                title={t('user.auctions.table.empty.title')}
-                description={t('user.auctions.table.empty.description')}
-              />
-            )}
-          </TableContainer>
-
-          <Pagination
-            limit={limit}
-            limits={[environment.PAGINATION_LIMIT, 24, 36, 48]}
-            onLimitChange={changeLimit}
-            onPageChange={changePage}
-            page={page}
-            total={data?.auctions?.totalCount || 0}
-            result={{
-              label: t('pagination.result.label'),
-              caption: (props) => (
-                <Trans
-                  ns="templates"
-                  i18nKey="pagination.result.caption"
-                  values={props}
-                  components={[
-                    <Text as="span" color="brand.black" key="text" />,
-                  ]}
-                />
-              ),
-              pages: (props) =>
-                t('pagination.result.pages', { count: props.total }),
-            }}
-          />
+                      </Td>
+                      <Td>{dateFromNow(item.createdAt)}</Td>
+                      <Td isNumeric>
+                        {ownerLoggedIn && item.ownAsset && (
+                          <SaleAuctionAction
+                            signer={signer}
+                            auction={item}
+                            bestBid={item.bestBid}
+                            onAuctionAccepted={onAuctionAccepted}
+                          />
+                        )}
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Empty
+              icon={<Icon as={HiOutlineSearch} w={8} h={8} color="gray.400" />}
+              title={t('user.auctions.table.empty.title')}
+              description={t('user.auctions.table.empty.description')}
+            />
+          )}
+          {auctions?.length !== 0 && (
+            <Pagination
+              limit={limit}
+              limits={[environment.PAGINATION_LIMIT, 24, 36, 48]}
+              page={page}
+              onPageChange={changePage}
+              onLimitChange={changeLimit}
+              hasNextPage={data?.auctions?.pageInfo.hasNextPage}
+              hasPreviousPage={data?.auctions?.pageInfo.hasPreviousPage}
+            />
+          )}
         </Stack>
       </UserProfileTemplate>
     </LargeLayout>

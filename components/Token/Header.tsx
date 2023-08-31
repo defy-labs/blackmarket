@@ -8,10 +8,9 @@ import {
 } from '@chakra-ui/react'
 import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
-import useBlockExplorer from 'hooks/useBlockExplorer'
-import { useMemo, VFC } from 'react'
+import { FC, useMemo } from 'react'
 import { MintType, Standard } from '../../graphql'
-// import useBlockExplorer from '../../hooks/useBlockExplorer'
+import useBlockExplorer from '../../hooks/useBlockExplorer'
 import Link from '../Link/Link'
 import type { Props as SaleDetailProps } from '../Sales/Detail'
 import SaleDetail from '../Sales/Detail'
@@ -22,6 +21,9 @@ import TokenMetadata from '../Token/Metadata'
 export type Props = {
   asset: {
     id: string
+    chainId: number
+    collectionAddress: string
+    tokenId: string
     name: string
     image: string
     animationUrl: string | null | undefined
@@ -54,7 +56,7 @@ export type Props = {
   onAuctionAccepted: (id: string) => Promise<void>
 }
 
-const TokenHeader: VFC<Props> = ({
+const TokenHeader: FC<Props> = ({
   asset,
   currencies,
   creator,
@@ -76,7 +78,6 @@ const TokenHeader: VFC<Props> = ({
     () => asset.owned.gte(asset.totalSupply),
     [asset],
   )
-
   const isSingle = useMemo(
     () => asset.collection.standard === 'ERC721',
     [asset],
@@ -113,8 +114,7 @@ const TokenHeader: VFC<Props> = ({
               animationUrl={asset.animationUrl}
               unlockedContent={asset.unlockedContent}
               defaultText={asset.name}
-              fill={true}
-              // sizes determined from the homepage
+              fill
               sizes="
               (min-width: 30em) 384px,
               100vw"
@@ -138,7 +138,9 @@ const TokenHeader: VFC<Props> = ({
           </Heading>
         </Stack>
         <TokenMetadata
-          assetId={asset.id}
+          chainId={asset.chainId}
+          collectionAddress={asset.collectionAddress}
+          tokenId={asset.tokenId}
           creator={creator}
           owners={owners}
           numberOfOwners={numberOfOwners}

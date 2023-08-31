@@ -10,8 +10,7 @@ import {
   VStack,
 } from '@chakra-ui/react'
 import { Signer } from '@ethersproject/abstract-signer'
-import { formatError, useInvitation, useIsLoggedIn } from '@nft/hooks'
-import { BsArrowRight } from '@react-icons/all-files/bs/BsArrowRight'
+import { useInvitation, useIsLoggedIn } from '@liteflow/react'
 import { HiBadgeCheck } from '@react-icons/all-files/hi/HiBadgeCheck'
 import { HiOutlineClipboard } from '@react-icons/all-files/hi/HiOutlineClipboard'
 import { HiOutlineGlobeAlt } from '@react-icons/all-files/hi/HiOutlineGlobeAlt'
@@ -19,12 +18,13 @@ import { SiInstagram } from '@react-icons/all-files/si/SiInstagram'
 import { SiTwitter } from '@react-icons/all-files/si/SiTwitter'
 import linkify from 'components/Linkify/Linkify'
 import useTranslation from 'next-translate/useTranslation'
-import { useCallback, useEffect, useState, VFC } from 'react'
+import { FC, useCallback, useEffect, useState } from 'react'
 import useAccount from '../../../hooks/useAccount'
+import { formatError } from '../../../utils'
 import Link from '../../Link/Link'
 import WalletAddress from '../../Wallet/Address'
 
-const UserProfileInfo: VFC<{
+const UserProfileInfo: FC<{
   signer: Signer | undefined
   address: string
   name: string | null | undefined
@@ -205,9 +205,6 @@ const UserProfileInfo: VFC<{
               {referralUrl}
             </Text>
           </Button>
-          <Flex as={Link} href="/referral" align="center">
-            {t('user.referral.how')} <Icon as={BsArrowRight} ml={2} />
-          </Flex>
         </Stack>
       )}
     </VStack>

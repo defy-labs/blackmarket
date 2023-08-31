@@ -1,12 +1,32 @@
 {
   "error": {
-    "500": "We're sorry, something went wrong."
+    "404": {
+      "title": "Data Not Found",
+      "description": "Oops! We couldn't find the data you're looking for on our server. If the issue persists, feel free to contact our support team for assistance."
+    },
+    "500": {
+      "short": "We're sorry, something went wrong.",
+      "title": "Internal Server Error",
+      "description": "Oops! We encountered an unexpected issue on our server. If the issue persists, feel free to contact our support team for assistance."
+    },
+    "button": "Contact support"
   },
   "home": {
-    "explore": "Explore All Collectibles",
-    "collections": "Collections",
+    "collections": {
+      "title": "Notable Collections",
+      "explore": "Explore collections"
+    },
+    "users": {
+      "title": "Notable Users",
+      "explore": "Explore users"
+    },
     "auctions": "Auctions",
-    "featured": "Featured NFTs"
+    "nfts": {
+      "title": "Notable NFTs",
+      "explore": "Explore NFTs"
+    },
+    "resources": "Resources",
+    "featuredCollections": "Featured Collections"
   },
   "explore": {
     "title": "Explore",
@@ -33,6 +53,14 @@
       "empty": {
         "title": "No Users Found",
         "description": "Update your filters to find more users."
+      },
+      "orderBy": {
+        "label": "Sort by",
+        "values": {
+          "createdAtDesc": "Date: Newest",
+          "createdAtAsc": "Date: Oldest",
+          "nameAsc": "Alphabetical"
+        }
       }
     },
     "collections": {
@@ -53,6 +81,10 @@
   },
   "collection": {
     "filter": "Filters",
+    "card": {
+      "floor-price": "Floor price",
+      "total-volume": "Total Vol."
+    },
     "header": {
       "data-labels": {
         "floor-price": "Floor price",
@@ -99,11 +131,6 @@
           "body": "I would like to report the following NFT {{name}} (#{{id}})\nReason: "
         },
         "refresh-metadata": "Refresh Metadata"
-      },
-      "explorerLink": "View on {{name}}",
-      "ipfsLink": "View on IPFS",
-      "errors": {
-        "image": "An issue occured"
       },
       "details": {
         "title": "Details",
@@ -216,41 +243,6 @@
           "fixed": "Fixed price",
           "auction": "Timed auction"
         }
-      }
-    }
-  },
-  "pagination": {
-    "result": {
-      "label": "Results per page",
-      "caption": "<0>{{from}}</0> - <0>{{to}}</0> of <0>{{total}}</0> results",
-      "pages_one": "of {{count}} page",
-      "pages_other": "of {{count}} pages"
-    }
-  },
-  "referral": {
-    "title": "Refer a creator",
-    "description": "Onboard new creators on the {{platformName}} platform through your referral link and earn a percentage from the sales of the NFTs they created in perpetuity.",
-    "link": "Your referral link",
-    "how": {
-      "title": "How it works",
-      "steps": [
-        "Copy and share your referral link to the creator you want to onboard",
-        "The creator uses your referral link to sign in to the platform (only new creator can be onboarded through a referral link)",
-        "Your referral rewards is then associated with the creator’s account",
-        "Every time an NFT created by your referred creator is sold you will receive the referral rewards"
-      ]
-    },
-    "rewards": {
-      "title": "Referral rewards",
-      "primary": {
-        "title": "Primary sale",
-        "description": "You will earn {{percentage}}% from the sales.",
-        "tooltip": "A primary sale is the first sale that happens after the mint of an NFT."
-      },
-      "secondary": {
-        "title": "Secondary sales",
-        "description": "You will earn {{percentage}}% from the sales.",
-        "tooltip": "Secondary sales are all the sales that happen after the primary sale of an NFT."
       }
     }
   },

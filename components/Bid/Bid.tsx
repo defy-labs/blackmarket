@@ -11,19 +11,21 @@ import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import {
   AcceptOfferStep,
   CancelOfferStep,
+  useAcceptOffer,
+  useCancelOffer,
+} from '@liteflow/react'
+import { HiBadgeCheck } from '@react-icons/all-files/hi/HiBadgeCheck'
+import Trans from 'next-translate/Trans'
+import useTranslation from 'next-translate/useTranslation'
+import { FC, SyntheticEvent, useMemo } from 'react'
+import { BlockExplorer } from '../../hooks/useBlockExplorer'
+import {
   dateFromNow,
   formatDate,
   formatError,
   isSameAddress,
-  useAcceptOffer,
-  useCancelOffer,
-} from '@nft/hooks'
-import { HiBadgeCheck } from '@react-icons/all-files/hi/HiBadgeCheck'
-import Trans from 'next-translate/Trans'
-import useTranslation from 'next-translate/useTranslation'
-import { SyntheticEvent, useMemo, VFC } from 'react'
-import { BlockExplorer } from '../../hooks/useBlockExplorer'
-import ButtonWithNetworkSwitch from '../Button/SwitchNetwork'
+} from '../../utils'
+import ConnectButtonWithNetworkSwitch from '../Button/ConnectWithNetworkSwitch'
 import Link from '../Link/Link'
 import { ListItem } from '../List/List'
 import AcceptOfferModal from '../Modal/AcceptOffer'
@@ -62,7 +64,7 @@ export type Props = {
   onCanceled: (id: string) => Promise<void>
 }
 
-const Bid: VFC<Props> = ({
+const Bid: FC<Props> = ({
   bid,
   chainId,
   signer,
@@ -118,7 +120,7 @@ const Bid: VFC<Props> = ({
     try {
       acceptOfferOnOpen()
       confirmAcceptOnClose()
-      await acceptOffer(bid, quantity || bid.availableQuantity)
+      await acceptOffer(bid.id, quantity || bid.availableQuantity)
       await onAccepted(bid.id)
     } catch (e) {
       toast({
@@ -137,7 +139,7 @@ const Bid: VFC<Props> = ({
     if (activeCancelOfferStep !== CancelOfferStep.INITIAL) return
     try {
       cancelOfferOnOpen()
-      await cancelOffer(bid)
+      await cancelOffer(bid.id)
       await onCanceled(bid.id)
     } catch (e) {
       toast({
@@ -238,7 +240,7 @@ const Bid: VFC<Props> = ({
         action={
           <>
             {canAccept && (
-              <ButtonWithNetworkSwitch
+              <ConnectButtonWithNetworkSwitch
                 chainId={chainId}
                 w={{ base: 'full', md: 'auto' }}
                 isLoading={activeAcceptOfferStep !== AcceptOfferStep.INITIAL}
@@ -251,10 +253,10 @@ const Bid: VFC<Props> = ({
                 <Text as="span" isTruncated>
                   {t('bid.detail.accept')}
                 </Text>
-              </ButtonWithNetworkSwitch>
+              </ConnectButtonWithNetworkSwitch>
             )}
             {canCancel && (
-              <ButtonWithNetworkSwitch
+              <ConnectButtonWithNetworkSwitch
                 chainId={chainId}
                 variant="outline"
                 colorScheme="gray"
@@ -265,7 +267,7 @@ const Bid: VFC<Props> = ({
                 <Text as="span" isTruncated>
                   {t('bid.detail.cancel')}
                 </Text>
-              </ButtonWithNetworkSwitch>
+              </ConnectButtonWithNetworkSwitch>
             )}
           </>
         }

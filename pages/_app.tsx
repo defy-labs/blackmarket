@@ -1,38 +1,33 @@
 import { ApolloProvider } from '@apollo/client'
 import Bugsnag from '@bugsnag/js'
 import BugsnagPluginReact from '@bugsnag/plugin-react'
-import {
-  Box,
-  Button,
-  ChakraProvider,
-  Flex,
-  Link,
-  useToast,
-} from '@chakra-ui/react'
-import { LiteflowProvider } from '@nft/hooks'
-import { lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit'
+import { Box, Button, ChakraProvider, Flex, Link } from '@chakra-ui/react'
+import { LiteflowProvider } from '@liteflow/react'
+import { RainbowKitProvider, lightTheme } from '@rainbow-me/rainbowkit'
 import '@rainbow-me/rainbowkit/styles.css'
-import transakSDK from '@transak/transak-sdk'
 import dayjs from 'dayjs'
 import type { AppContext, AppInitialProps, AppProps } from 'next/app'
 import App from 'next/app'
 import { useRouter } from 'next/router'
 import { GoogleAnalytics, usePageViews } from 'nextjs-google-analytics'
 import NProgress from 'nprogress'
+import { Helmet } from 'react-helmet'
+import transakSDK from '@transak/transak-sdk'
 import 'nprogress/nprogress.css'
 import React, {
   ComponentType,
   Fragment,
+  JSX,
   PropsWithChildren,
   useEffect,
   useMemo,
+  useState,
 } from 'react'
 import { Cookies, CookiesProvider } from 'react-cookie'
-import { Helmet } from 'react-helmet'
 import {
-  useAccount as useWagmiAccount,
-  useDisconnect,
   WagmiConfig,
+  useDisconnect,
+  useAccount as useWagmiAccount,
 } from 'wagmi'
 import getClient from '../client'
 import Footer from '../components/Footer/Footer'
@@ -41,9 +36,8 @@ import Navbar from '../components/Navbar/Navbar'
 import { chains, client } from '../connectors'
 import environment from '../environment'
 import useAccount, { COOKIES, COOKIE_JWT_TOKEN } from '../hooks/useAccount'
-import useSigner from '../hooks/useSigner'
 import { theme } from '../styles/theme'
-
+import Error from './_error'
 require('dayjs/locale/ja')
 require('dayjs/locale/zh-cn')
 require('dayjs/locale/es-mx')
@@ -52,7 +46,6 @@ NProgress.configure({ showSpinner: false })
 
 function Layout({ children }: PropsWithChildren<{}>) {
   const router = useRouter()
-  const signer = useSigner()
   const { address } = useAccount()
   const userProfileLink = useMemo(
     () => (address ? `/users/${address}` : '/login'),
@@ -165,7 +158,7 @@ function Layout({ children }: PropsWithChildren<{}>) {
   }
 
   return (
-    <Box mt={12}>
+    <Box>
       <Helmet>
         <script
           async
@@ -180,14 +173,6 @@ function Layout({ children }: PropsWithChildren<{}>) {
         </style>
       </Helmet>
       <Navbar
-        allowTopUp={environment.ALLOW_TOP_UP}
-        router={{
-          asPath: router.asPath,
-          isReady: router.isReady,
-          push: router.push,
-          query: router.query,
-          events: router.events,
-        }}
         multiLang={{
           locale: router.locale,
           pathname: router.pathname,
@@ -198,8 +183,6 @@ function Layout({ children }: PropsWithChildren<{}>) {
             { label: 'Spanish', value: 'es-mx' },
           ],
         }}
-        signer={signer}
-        disableMinting={environment.MINTABLE_COLLECTIONS.length === 0}
       />
       <Flex
         mx="auto"
@@ -257,15 +240,17 @@ function Layout({ children }: PropsWithChildren<{}>) {
           'background-color': '#ffffff',
         })}
       </Flex>
-      <Footer name="DEFY Labs." links={footerLinks} />
+      <Footer name={environment.META_COMPANY_NAME} links={footerLinks} />
     </Box>
   )
 }
 
-function AccountProvider(props: PropsWithChildren<{}>) {
+function AccountProvider({
+  children,
+  onError,
+}: PropsWithChildren<{ onError: (code: number) => void }>) {
   const { login, jwtToken, logout } = useAccount()
   const { disconnect } = useDisconnect()
-  const toast = useToast()
 
   const { connector } = useWagmiAccount({
     async onConnect({ connector }) {
@@ -273,10 +258,6 @@ function AccountProvider(props: PropsWithChildren<{}>) {
       try {
         await login(connector)
       } catch (e: any) {
-        toast({
-          title: e.reason || e.message || e.toString(),
-          status: 'warning',
-        })
         disconnect()
       }
     },
@@ -298,16 +279,17 @@ function AccountProvider(props: PropsWithChildren<{}>) {
   const client = useMemo(
     // The client needs to be reset when the jwtToken changes but only on the client as the server will
     // always have the same token and will rerender this app multiple times and needs to preserve the cache
-    () => getClient(jwtToken, typeof window !== 'undefined'),
-    [jwtToken],
+    () => getClient(jwtToken, typeof window !== 'undefined', onError),
+    [jwtToken, onError],
   )
 
-  return <ApolloProvider client={client}>{props.children}</ApolloProvider>
+  return <ApolloProvider client={client}>{children}</ApolloProvider>
 }
 
 export type MyAppProps = { jwt: string | null; now: Date }
 
 function MyApp({ Component, pageProps }: AppProps<MyAppProps>): JSX.Element {
+  const [errorCode, setErrorCode] = useState<number>()
   const router = useRouter()
   dayjs.locale(router.locale)
   usePageViews()
@@ -345,24 +327,21 @@ function MyApp({ Component, pageProps }: AppProps<MyAppProps>): JSX.Element {
   return (
     <ErrorBoundary>
       <Head
-        title="DEFY Black Market"
-        description="Get everything you need to bring the fight to Future Systems"
+        title={environment.META_TITLE}
+        description={environment.META_DESCRIPTION}
       >
-        <meta
-          name="keywords"
-          content="Get everything you need to bring the fight to Future Systems"
-        />
+        <meta name="keywords" content={environment.META_KEYWORDS} />
 
-        <meta name="author" content="DEFY Labs" />
-        <meta name="application-name" content="DEFY Black Market" />
+        <meta name="author" content={environment.META_COMPANY_NAME} />
+        <meta name="application-name" content={environment.META_TITLE} />
 
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://blackmarket.defydisrupt.io" />
+        <meta property="og:url" content={environment.BASE_URL} />
 
         <meta name="twitter:card" content="summary" />
       </Head>
       <GoogleAnalytics strategy="lazyOnload" />
-      <WagmiConfig client={client}>
+      <WagmiConfig config={client}>
         <RainbowKitProvider
           chains={chains}
           theme={lightTheme({
@@ -372,10 +351,17 @@ function MyApp({ Component, pageProps }: AppProps<MyAppProps>): JSX.Element {
         >
           <CookiesProvider cookies={cookies}>
             <ChakraProvider theme={theme}>
-              <LiteflowProvider endpoint={environment.GRAPHQL_URL}>
-                <AccountProvider>
+              <LiteflowProvider
+                apiKey={environment.LITEFLOW_API_KEY}
+                endpoint={process.env.NEXT_PUBLIC_LITEFLOW_BASE_URL}
+              >
+                <AccountProvider onError={setErrorCode}>
                   <Layout>
-                    <Component {...pageProps} />
+                    {errorCode ? (
+                      <Error statusCode={errorCode} />
+                    ) : (
+                      <Component {...pageProps} />
+                    )}
                   </Layout>
                 </AccountProvider>
               </LiteflowProvider>

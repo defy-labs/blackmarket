@@ -19,6 +19,13 @@ query FetchCollectionDetails($collectionAddress: Address!, $chainId: Int!) {
         status
       }
     }
+  }
+}
+
+query FetchCollectionMetrics($collectionAddress: Address!, $chainId: Int!) {
+  collection(address: $collectionAddress, chainId: $chainId) {
+    address
+    chainId
     numberOfOwners
     supply
     floorPrice {
@@ -44,7 +51,7 @@ query FetchCollectionAssets(
 ) {
   assets(
     filter: {
-      ownershipsExist: true
+      quantity: { greaterThan: "0" }
       chainId: { equalTo: $chainId }
       collectionAddress: { equalTo: $collectionAddress }
       and: $filter
@@ -53,13 +60,15 @@ query FetchCollectionAssets(
     first: $limit
     offset: $offset
   ) {
-    totalCount
     pageInfo {
       hasNextPage
-      endCursor
+      hasPreviousPage
     }
     nodes {
       id
+      chainId
+      collectionAddress
+      tokenId
       name
       description
       image
@@ -85,14 +94,8 @@ query FetchCollectionAssets(
         image
         name
       }
-      owned: ownerships(
-        filter: { ownerAddress: { equalTo: $currentAccount } }
-      ) {
-        aggregates {
-          sum {
-            quantity
-          }
-        }
+      owned: ownership(ownerAddress: $currentAccount) {
+        quantity
       }
       bestBid: bids(
         orderBy: [UNIT_PRICE_IN_REF_DESC, CREATED_AT_ASC]
@@ -117,6 +120,7 @@ query FetchCollectionAssets(
         filter: { expiredAt: { greaterThan: $now } }
       ) {
         totalCount
+        totalCurrencyDistinctCount
         nodes {
           id
           unitPrice
@@ -125,13 +129,6 @@ query FetchCollectionAssets(
             id
             decimals
             symbol
-          }
-        }
-      }
-      currencySales: sales(filter: { expiredAt: { greaterThan: $now } }) {
-        aggregates {
-          distinctCount {
-            currencyId
           }
         }
       }

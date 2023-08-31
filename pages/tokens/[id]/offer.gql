@@ -1,13 +1,19 @@
-query FeesForOffer($id: String!) {
-  orderFees(assetId: $id) {
-    valuePerTenThousand
-  }
-}
-
-query OfferForAsset($id: String!, $address: Address, $now: Datetime!) {
-  asset(id: $id) {
+query OfferForAsset(
+  $chainId: Int!
+  $collectionAddress: Address!
+  $tokenId: String!
+  $address: Address
+  $now: Datetime!
+) {
+  asset(
+    chainId: $chainId
+    collectionAddress: $collectionAddress
+    tokenId: $tokenId
+  ) {
     id
     chainId
+    collectionAddress
+    tokenId
     collection {
       chainId
       address
@@ -24,12 +30,8 @@ query OfferForAsset($id: String!, $address: Address, $now: Datetime!) {
       url
       mimetype
     }
-    owned: ownerships(filter: { ownerAddress: { equalTo: $address } }) {
-      aggregates {
-        sum {
-          quantity
-        }
-      }
+    owned: ownership(ownerAddress: $address) {
+      quantity
     }
     auctions(
       first: 1
@@ -84,6 +86,7 @@ query OfferForAsset($id: String!, $address: Address, $now: Datetime!) {
       filter: { expiredAt: { greaterThan: $now } }
     ) {
       totalCount
+      totalCurrencyDistinctCount
       nodes {
         id
         unitPrice
@@ -93,13 +96,6 @@ query OfferForAsset($id: String!, $address: Address, $now: Datetime!) {
           id
           decimals
           symbol
-        }
-      }
-    }
-    currencySales: sales(filter: { expiredAt: { greaterThan: $now } }) {
-      aggregates {
-        distinctCount {
-          currencyId
         }
       }
     }

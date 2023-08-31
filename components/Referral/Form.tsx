@@ -1,18 +1,19 @@
 import { Button, Icon, Text, useToast } from '@chakra-ui/react'
 import { Signer } from '@ethersproject/abstract-signer'
-import { formatError, useInvitation } from '@nft/hooks'
+import { useInvitation } from '@liteflow/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { HiOutlineClipboard } from '@react-icons/all-files/hi/HiOutlineClipboard'
 import useTranslation from 'next-translate/useTranslation'
-import { useCallback, useEffect, useMemo, useState, VFC } from 'react'
+import { FC, useCallback, useEffect, useMemo, useState } from 'react'
 import useAccount from '../../hooks/useAccount'
+import { formatError } from '../../utils'
 
 type Props = {
   loginUrl: string
   signer: Signer | undefined
 }
 
-const ReferralForm: VFC<Props> = ({ loginUrl, signer }) => {
+const ReferralForm: FC<Props> = ({ loginUrl, signer }) => {
   const { t } = useTranslation('components')
   const toast = useToast()
   const { isLoggedIn } = useAccount()

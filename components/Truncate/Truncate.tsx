@@ -1,6 +1,6 @@
 import { chakra, Text, TextProps } from '@chakra-ui/react'
 import useTranslation from 'next-translate/useTranslation'
-import { useMemo, useState } from 'react'
+import { JSX, useMemo, useState } from 'react'
 import linkify from '../Linkify/Linkify'
 
 type Props = {
@@ -27,7 +27,11 @@ export default function Truncate({
   )
   return (
     <>
-      <Text variant={size === 'lg' ? 'text' : 'text-sm'} color={color}>
+      <Text
+        variant={size === 'lg' ? 'text' : 'text-sm'}
+        color={color}
+        whiteSpace="pre-wrap"
+      >
         {isOpen ? linkify(children) : truncate}
         {children.length > length && !isOpen && (
           <chakra.button

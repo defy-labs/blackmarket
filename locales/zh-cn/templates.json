@@ -1,11 +1,31 @@
 {
   "error": {
-    "500": "很抱歉，出了点问题。"
+    "404": {
+      "title": "未找到数据",
+      "description": "哎呀！ 我们在我们的服务器上找不到您要查找的数据。 如果问题仍然存在，请随时联系我们的支持团队寻求帮助。"
+    },
+    "500": {
+      "short": "很抱歉，出了点问题。",
+      "title": "内部服务器错误",
+      "description": "哎呀！ 我们的服务器遇到了意外问题。 如果问题仍然存在，请随时联系我们的支持团队寻求帮助。"
+    },
+    "button": "联系支持人员"
   },
   "home": {
-    "explore": "浏览所有藏品",
+    "collections": {
+      "title": "著名藏品",
+      "explore": "探索收藏"
+    },
+    "users": {
+      "title": "知名用户",
+      "explore": "探索用户"
+    },
     "auctions": "拍卖",
-    "featured": "精选NFT"
+    "nfts": {
+      "title": "著名的 NFT",
+      "explore": "探索 NFT"
+    },
+    "resources": "资源"
   },
   "explore": {
     "title": "探讨",
@@ -32,6 +52,14 @@
       "empty": {
         "title": "未找到用户",
         "description": "请更新筛选条件来查找更多用户。"
+      },
+      "orderBy": {
+        "label": "排序方式",
+        "values": {
+          "createdAtDesc": "日期：最新",
+          "createdAtAsc": "日期：最早",
+          "nameAsc": "按字母顺序"
+        }
       }
     },
     "collections": {
@@ -52,6 +80,10 @@
   },
   "collection": {
     "filter": "过滤 器",
+    "card": {
+      "floor-price": "底价",
+      "total-volume": "总卷"
+    },
     "header": {
       "data-labels": {
         "floor-price": "底价",
@@ -98,11 +130,6 @@
           "body": "我要举报下列 NFT {{name}} (#{{id}})\n原因如下： "
         },
         "refresh-metadata": "刷新元数据"
-      },
-      "explorerLink": "在 {{name}} 上查看",
-      "ipfsLink": "在 IPFS 上查看",
-      "errors": {
-        "image": "出现问题"
       },
       "details": {
         "title": "细节",
@@ -215,41 +242,6 @@
           "fixed": "固定价格",
           "auction": "限时拍卖"
         }
-      }
-    }
-  },
-  "pagination": {
-    "result": {
-      "label": "每页结果数",
-      "caption": "第 <0>{{from}}</0> 至 <0>{{to}}</0> 条结果，共 <0>{{total}}</0> 条",
-      "pages_one": "共 {{count}} 页",
-      "pages_other": "共 {{count}} 页"
-    }
-  },
-  "referral": {
-    "title": "推荐创作者",
-    "description": "通过您的推荐链接在{{platformName}}平台上加入新的创作者，并从他们永久创建的 NFT 的销售中赚取一定比例。",
-    "link": "您的推荐链接",
-    "how": {
-      "title": "这个怎么运作",
-      "steps": [
-        "复制您的推荐链接并将其分享给您想要加入的创建者",
-        "创作者使用您的推荐链接登录平台（只有新创作者可以通过推荐链接入职）",
-        "然后您的推荐奖励与创建者的帐户相关联",
-        "每次出售您推荐的创建者创建的 NFT 时，您都会收到推荐奖励"
-      ]
-    },
-    "rewards": {
-      "title": "推荐奖励",
-      "primary": {
-        "title": "初级销售",
-        "description": "您将从销售中赚取 {{percentage}}%",
-        "tooltip": "工具提示内容 > 主要销售是在 NFT 铸造之后发生的第一次销售。"
-      },
-      "secondary": {
-        "title": "二次销售",
-        "description": "您将从销售中赚取 {{percentage}}%",
-        "tooltip": "工具提示内容 > 二级销售是在 NFT 一级销售之后发生的所有销售。"
       }
     }
   },

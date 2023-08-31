@@ -2,14 +2,16 @@ import { Flex, Heading, Icon, Stack, Text } from '@chakra-ui/react'
 import { BigNumber } from '@ethersproject/bignumber'
 import { IoImageOutline } from '@react-icons/all-files/io5/IoImageOutline'
 import useTranslation from 'next-translate/useTranslation'
-import { VFC } from 'react'
+import { FC } from 'react'
 import { Standard } from '../../graphql'
 import Avatar from '../User/Avatar'
 import OwnersModal from './Owners/Modal'
 import Supply from './Supply'
 
 export type Props = {
-  assetId: string
+  chainId: number
+  collectionAddress: string
+  tokenId: string
   standard: Standard
   creator:
     | {
@@ -32,8 +34,10 @@ export type Props = {
   isOpenCollection: boolean
 }
 
-const TokenMetadata: VFC<Props> = ({
-  assetId,
+const TokenMetadata: FC<Props> = ({
+  chainId,
+  collectionAddress,
+  tokenId,
   standard,
   creator,
   owners,
@@ -79,7 +83,9 @@ const TokenMetadata: VFC<Props> = ({
             {t('token.metadata.owners')}
           </Heading>
           <OwnersModal
-            assetId={assetId}
+            chainId={chainId}
+            collectionAddress={collectionAddress}
+            tokenId={tokenId}
             ownersPreview={owners}
             numberOfOwners={numberOfOwners}
           />

@@ -1,54 +1,60 @@
-import { Button, Heading, Icon, Stack, Text, useToast } from '@chakra-ui/react'
-import { formatError } from '@nft/hooks'
+import { NetworkStatus } from '@apollo/client'
+import {
+  Button,
+  Flex,
+  Heading,
+  Icon,
+  Skeleton,
+  Stack,
+  Text,
+  useToast,
+} from '@chakra-ui/react'
 import { FaBell } from '@react-icons/all-files/fa/FaBell'
 import { NextPage } from 'next'
 import useTranslation from 'next-translate/useTranslation'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useCookies } from 'react-cookie'
 import Empty from '../components/Empty/Empty'
 import Head from '../components/Head'
-import Loader from '../components/Loader'
 import NotificationDetail from '../components/Notification/Detail'
+import SkeletonList from '../components/Skeleton/List'
 import { concatToQuery } from '../concat'
 import { useGetNotificationsQuery } from '../graphql'
 import useAccount from '../hooks/useAccount'
-import useEagerConnect from '../hooks/useEagerConnect'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import SmallLayout from '../layouts/small'
+import { formatError } from '../utils'
 
 const NotificationPage: NextPage = ({}) => {
-  const ready = useEagerConnect()
   const { t } = useTranslation('templates')
   const toast = useToast()
   const { address } = useAccount()
-  useLoginRedirect(ready)
+  useLoginRedirect()
   const [_, setCookies] = useCookies()
-  const [loading, setLoading] = useState(false)
 
   const {
-    data,
+    data: notificationData,
     fetchMore,
-    loading: fetching,
+    networkStatus,
   } = useGetNotificationsQuery({
     variables: {
       cursor: null,
       address: address || '',
     },
+    notifyOnNetworkStatusChange: true,
     skip: !address,
   })
 
-  const notifications = useMemo(() => data?.notifications?.nodes || [], [data])
-
-  const hasNextPage = useMemo(
-    () => data?.notifications?.pageInfo.hasNextPage,
-    [data],
-  )
+  const notifications = notificationData?.notifications?.nodes
+  const hasNextPage = notificationData?.notifications?.pageInfo.hasNextPage
+  const endCursor = notificationData?.notifications?.pageInfo.endCursor
 
   const loadMore = useCallback(async () => {
-    setLoading(true)
     try {
       await fetchMore({
-        variables: { cursor: data?.notifications?.pageInfo.endCursor },
+        variables: {
+          cursor: endCursor,
+        },
         updateQuery: concatToQuery('notifications'),
       })
     } catch (e) {
@@ -56,10 +62,8 @@ const NotificationPage: NextPage = ({}) => {
         title: formatError(e),
         status: 'error',
       })
-    } finally {
-      setLoading(false)
     }
-  }, [data?.notifications?.pageInfo.endCursor, fetchMore, toast])
+  }, [endCursor, fetchMore, toast])
 
   useEffect(() => {
     if (!address) return
@@ -70,8 +74,6 @@ const NotificationPage: NextPage = ({}) => {
     })
   }, [address, setCookies])
 
-  if (fetching) return <Loader fullPage />
-
   return (
     <SmallLayout>
       <Head title="Notifications" />
@@ -79,7 +81,16 @@ const NotificationPage: NextPage = ({}) => {
         {t('notifications.title')}
       </Heading>
       <Stack spacing={6} mt={12}>
-        {(notifications || []).length > 0 ? (
+        {!notifications ? (
+          <SkeletonList items={12} gap={6}>
+            <Flex align="center" gap={4}>
+              <Skeleton height="56px" width="56px" borderRadius="full" />
+              <Flex flex={1} gap={1} direction="column">
+                <Skeleton height="15px" width="250px" />
+              </Flex>
+            </Flex>
+          </SkeletonList>
+        ) : notifications.length > 0 ? (
           <>
             {notifications.map((notification) => (
               <NotificationDetail
@@ -89,7 +100,10 @@ const NotificationPage: NextPage = ({}) => {
               />
             ))}
             {hasNextPage && (
-              <Button isLoading={loading} onClick={loadMore}>
+              <Button
+                isLoading={networkStatus === NetworkStatus.fetchMore}
+                onClick={loadMore}
+              >
                 <Text as="span" isTruncated>
                   {t('notifications.loadMore')}
                 </Text>

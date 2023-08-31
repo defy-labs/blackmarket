@@ -110,9 +110,8 @@ const FilterByPrice: FC<Props> = ({
               placeholder={t('filters.assets.currency.placeholder')}
               choices={currencies.map((x) => ({
                 value: x,
-                label: x.symbol,
+                label: x.symbol || '',
                 image: x.image,
-                caption: x.name,
               }))}
               value={currency}
               required

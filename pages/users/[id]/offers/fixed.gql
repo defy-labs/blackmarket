@@ -47,6 +47,7 @@ query FetchUserFixedPrice(
         id
         name
         image
+        id
         decimals
         symbol
       }

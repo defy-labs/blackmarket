@@ -8,7 +8,7 @@ import {
   useTheme,
 } from '@chakra-ui/react'
 import { FaImage } from '@react-icons/all-files/fa/FaImage'
-import { FC, useCallback, useEffect, useState } from 'react'
+import { FC, useEffect, useState } from 'react'
 import Image from '../Image/Image'
 
 const getUnlockedContentUrls = (
@@ -65,9 +65,6 @@ const TokenMedia: FC<{
   const [imageError, setImageError] = useState(false)
   const [videoError, setVideoError] = useState(false)
 
-  const onImageError = useCallback(() => setImageError(true), [])
-  const onVideoError = useCallback(() => setVideoError(true), [])
-
   // reset when image change. Needed when component is recycled
   useEffect(() => setImageError(false), [image])
   useEffect(() => setVideoError(false), [image, animation])
@@ -103,7 +100,7 @@ const TokenMedia: FC<{
         controls={controls}
         maxW="full"
         maxH="full"
-        onError={onVideoError}
+        onError={() => setVideoError(true)}
       />
     )
   }
@@ -121,7 +118,7 @@ const TokenMedia: FC<{
         controls={controls}
         maxW="full"
         maxH="full"
-        onError={onVideoError}
+        onError={() => setVideoError(true)}
       />
     )
   }
@@ -142,7 +139,7 @@ const TokenMedia: FC<{
       <Image
         src={image}
         alt={defaultText}
-        onError={onImageError}
+        onError={() => setImageError(true)}
         fill
         objectFit={fill ? 'cover' : 'contain'}
         sizes={sizes}

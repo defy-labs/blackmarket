@@ -58,6 +58,7 @@ import { useFetchAssetQuery } from '../../../graphql'
 import useAccount from '../../../hooks/useAccount'
 import useBlockExplorer from '../../../hooks/useBlockExplorer'
 import useChainCurrencies from '../../../hooks/useChainCurrencies'
+import useNow from '../../../hooks/useNow'
 import useRequiredQueryParamSingle from '../../../hooks/useRequiredQueryParamSingle'
 import useSigner from '../../../hooks/useSigner'
 import LargeLayout from '../../../layouts/large'
@@ -135,17 +136,18 @@ const DetailPage: NextPage<Props> = ({ now: nowProp }) => {
     [blockExplorer, collectionAddress, tokenId],
   )
 
+  const now = useNow()
   const auction = useMemo(() => {
     const first = asset?.auctions.nodes[0]
     if (!first) return
     const auction = convertAuctionFull(first)
     if (!auction) return
     // check if auction is expired
-    if (new Date(auction.expireAt) <= new Date()) return
+    if (new Date(auction.expireAt) <= now) return
     // check if auction has a winning offer
     if (!!auction.winningOffer?.id) return
     return auction
-  }, [asset])
+  }, [asset, now])
 
   const directSales = useMemo(
     () => asset?.sales.nodes.map(convertSaleFull) || [],

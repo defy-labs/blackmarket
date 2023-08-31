@@ -20,6 +20,8 @@ query FetchAsset(
       name
       address
       standard
+      name
+      address
       supply
       mintType
     }

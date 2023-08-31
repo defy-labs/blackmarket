@@ -8,9 +8,7 @@
     "prebuild": "npm run graphql-codegen",
     "dev": "next dev",
     "build": "next build",
-    "lint": "next lint && npm run lint:gql && npm run lint:prettier",
-    "lint:prettier": "prettier \"**/*.{js,ts,tsx,json,md,gql,graphql}\" --check",
-    "lint:gql": "eslint -c .eslintrc.gql.js --no-eslintrc \"**/*.gql\"",
+    "lint": "next lint && prettier \"**/*.{js,ts,tsx,json,md}\" --check",
     "analyze": "ANALYZE=true npm run build",
     "start": "next start",
     "graphql-codegen": "graphql-codegen --overwrite"
@@ -60,7 +58,6 @@
     "@graphql-codegen/typescript": "^4.0.1",
     "@graphql-codegen/typescript-operations": "^4.0.1",
     "@graphql-codegen/typescript-react-apollo": "^3.3.7",
-    "@graphql-eslint/eslint-plugin": "^3.20.1",
     "@next/bundle-analyzer": "^13.4.9",
     "@nft/api-graphql": "^1.0.0-beta.34",
     "@types/nodemailer": "^6.4.8",

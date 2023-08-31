@@ -57,7 +57,7 @@ const AssetsHomeSection: FC<Props> = ({ date }) => {
 
   const assetIds = useMemo(() => {
     return featuredTokens
-  }, [featuredTokens, date])
+  }, [featuredTokens])
 
   const assetsQuery = useFetchAssetsQuery({
     variables: {

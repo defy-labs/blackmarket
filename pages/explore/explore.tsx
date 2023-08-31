@@ -59,7 +59,7 @@ const ExplorePage: NextPage<Props> = ({ now }) => {
   const date = useMemo(() => new Date(now), [now])
   const { address } = useAccount()
   const filter = useAssetFilterFromQuery()
-  const orderBy = useOrderByQuery<AssetsOrderBy>('CREATED_AT_DESC')
+  const orderBy = useOrderByQuery<AssetsOrderBy>('TRADES_COUNT_DESC')
   const { page, limit, offset } = usePaginateQuery()
   const { data: assetsData } = useFetchAllErc721And1155Query({
     variables: {
@@ -147,6 +147,10 @@ const ExplorePage: NextPage<Props> = ({ now }) => {
                     label: t('explore.nfts.orderBy.values.createdAtAsc'),
                     value: 'CREATED_AT_ASC',
                   },
+                  {
+                    label: 'Trade Count',
+                    value: 'TRADES_COUNT_DESC'
+                  }
                 ]}
                 value={orderBy}
                 inlineLabel

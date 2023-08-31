@@ -1,33 +1,41 @@
 import { Flex, SimpleGrid, Text } from '@chakra-ui/react'
+import Link from 'components/Link/Link'
 import useTranslation from 'next-translate/useTranslation'
-import { FC } from 'react'
+import { FC, useCallback } from 'react'
 
 type TraitListProps = {
+  chainId: number
+  collectionAddress: string
   traits: {
     type: string
     value: string
-    totalCount: number
     percent: number
   }[]
-  onTraitSelected: (trait: string) => void
 }
 
-const TraitList: FC<TraitListProps> = ({ traits, onTraitSelected }) => {
+const TraitList: FC<TraitListProps> = ({
+  chainId,
+  collectionAddress,
+  traits,
+}) => {
   const { t } = useTranslation('components')
+  const href = useCallback(
+    (type: string, value: string) =>
+      `/collection/${chainId}/${collectionAddress}?traits[${type}]=${value}`,
+    [chainId, collectionAddress],
+  )
   return (
     <SimpleGrid columns={{ base: 2, sm: 3 }} gap={3}>
       {traits.map((trait, i) => (
         <Flex
+          as={Link}
+          href={href(trait.type, trait.value)}
           key={i}
           flexDirection="column"
           rounded="xl"
           border="1px"
           borderColor="gray.200"
-          style={{ cursor: 'pointer' }}
           p={3}
-          onClick={() => {
-            onTraitSelected(`${trait.type} - ${trait.value}`)
-          }}
         >
           <Text
             as="span"
@@ -37,9 +45,7 @@ const TraitList: FC<TraitListProps> = ({ traits, onTraitSelected }) => {
             isTruncated
             pb={1}
           >
-            {trait.type === 'Category'
-              ? t(`categories.${trait.type}`, null, { fallback: trait.type })
-              : trait.type}
+            {trait.type}
           </Text>
           <Text
             as="span"
@@ -48,9 +54,7 @@ const TraitList: FC<TraitListProps> = ({ traits, onTraitSelected }) => {
             title={trait.value}
             isTruncated
           >
-            {trait.type === 'Category'
-              ? t(`categories.${trait.value}`, null, { fallback: trait.value })
-              : trait.value}
+            {trait.value}
           </Text>
           <Text
             as="span"

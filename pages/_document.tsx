@@ -1,6 +1,7 @@
 // eslint-disable-next-line @next/next/no-document-import-in-page
 import { NormalizedCacheObject } from '@apollo/client'
 import { getDataFromTree } from '@apollo/client/react/ssr'
+import { ColorModeScript } from '@chakra-ui/react'
 import { AppInitialProps } from 'next/app'
 import Document, {
   DocumentContext,
@@ -15,6 +16,7 @@ import { ComponentType, ReactElement } from 'react'
 import invariant from 'ts-invariant'
 import getClient from '../client'
 import { COOKIES, COOKIE_JWT_TOKEN } from '../hooks/useAccount'
+import { theme } from '../styles/theme'
 import { MyAppProps } from './_app'
 
 type MyDocumentProps = { apolloState: NormalizedCacheObject }
@@ -32,11 +34,12 @@ class MyDocument extends Document {
       <Html lang={this.props.locale || 'en'}>
         <Head>
           <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
             rel="stylesheet"
           />
         </Head>
         <body>
+          <ColorModeScript initialColorMode={theme.config.initialColorMode} />
           <Main />
           <NextScript />
         </body>

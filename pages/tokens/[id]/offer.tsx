@@ -7,23 +7,27 @@ import {
   Grid,
   GridItem,
   Heading,
+  Skeleton,
   useRadioGroup,
   useToast,
 } from '@chakra-ui/react'
 import { BigNumber } from '@ethersproject/bignumber'
-import { isSameAddress } from '@nft/hooks'
 import { AiOutlineDollarCircle } from '@react-icons/all-files/ai/AiOutlineDollarCircle'
 import { HiOutlineClock } from '@react-icons/all-files/hi/HiOutlineClock'
 import { NextPage } from 'next'
 import useTranslation from 'next-translate/useTranslation'
+import Error from 'next/error'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo, useState } from 'react'
+import invariant from 'ts-invariant'
 import Head from '../../../components/Head'
-import Loader from '../../../components/Loader'
 import BackButton from '../../../components/Navbar/BackButton'
+import type { BidCurrency } from '../../../components/Offer/Form/Bid'
 import Radio from '../../../components/Radio/Radio'
 import SalesAuctionForm from '../../../components/Sales/Auction/Form'
 import SalesDirectForm from '../../../components/Sales/Direct/Form'
+import SkeletonForm from '../../../components/Skeleton/Form'
+import SkeletonTokenCard from '../../../components/Skeleton/TokenCard'
 import TokenCard from '../../../components/Token/Card'
 import {
   convertAsset,
@@ -32,15 +36,15 @@ import {
   convertUser,
 } from '../../../convert'
 import environment from '../../../environment'
-import { useFeesForOfferQuery, useOfferForAssetQuery } from '../../../graphql'
+import { useOfferForAssetQuery } from '../../../graphql'
 import useAccount from '../../../hooks/useAccount'
 import useBlockExplorer from '../../../hooks/useBlockExplorer'
 import useChainCurrencies from '../../../hooks/useChainCurrencies'
-import useEagerConnect from '../../../hooks/useEagerConnect'
 import useLoginRedirect from '../../../hooks/useLoginRedirect'
 import useRequiredQueryParamSingle from '../../../hooks/useRequiredQueryParamSingle'
 import useSigner from '../../../hooks/useSigner'
 import SmallLayout from '../../../layouts/small'
+import { isSameAddress } from '../../../utils'
 
 type Props = {
   assetId: string
@@ -65,19 +69,24 @@ type SaleOption = {
 }
 
 const OfferPage: NextPage<Props> = ({ now }) => {
-  const ready = useEagerConnect()
   const signer = useSigner()
   const { t } = useTranslation('templates')
   const { back, push } = useRouter()
   const toast = useToast()
   const { address } = useAccount()
-  useLoginRedirect(ready)
+  useLoginRedirect()
   const assetId = useRequiredQueryParamSingle('id')
+  const [chainId, collectionAddress, tokenId] = useMemo(
+    () => assetId.split('-'),
+    [assetId],
+  )
 
   const date = useMemo(() => new Date(now), [now])
-  const { data, loading } = useOfferForAssetQuery({
+  const { data } = useOfferForAssetQuery({
     variables: {
-      id: assetId,
+      chainId: chainId ? parseInt(chainId, 10) : 0,
+      collectionAddress: collectionAddress || '',
+      tokenId: tokenId || '',
       now: date,
       address: address || '',
     },
@@ -85,23 +94,15 @@ const OfferPage: NextPage<Props> = ({ now }) => {
 
   const blockExplorer = useBlockExplorer(data?.asset?.chainId)
 
-  const currencyRes = useChainCurrencies(data?.asset?.chainId)
+  const { data: currencyData } = useChainCurrencies(data?.asset?.chainId)
 
-  const fees = useFeesForOfferQuery({
-    variables: {
-      id: assetId,
-    },
-  })
-
-  const feesPerTenThousand = fees.data?.orderFees.valuePerTenThousand || 0
+  const asset = data?.asset
 
   const royaltiesPerTenThousand =
-    data?.asset?.royalties.reduce((sum, { value }) => sum + value, 0) || 0
-
-  const asset = useMemo(() => data?.asset, [data])
+    asset?.royalties.reduce((sum, { value }) => sum + value, 0) || 0
 
   const quantityAvailable = useMemo(
-    () => BigNumber.from(asset?.owned.aggregates?.sum?.quantity || '0'),
+    () => BigNumber.from(asset?.owned?.quantity || 0),
     [asset],
   )
 
@@ -111,8 +112,12 @@ const OfferPage: NextPage<Props> = ({ now }) => {
       : false
 
   const currencies = useMemo(
-    () => currencyRes.data?.currencies?.nodes || [],
-    [currencyRes],
+    () => currencyData?.currencies?.nodes || [],
+    [currencyData],
+  )
+  const auctionCurrencies = useMemo(
+    () => currencies.filter((c) => c.address) as BidCurrency[],
+    [currencies],
   )
 
   const saleOptions: [SaleOption, SaleOption] = useMemo(
@@ -148,17 +153,16 @@ const OfferPage: NextPage<Props> = ({ now }) => {
   }, [toast, t, push, assetId])
 
   const saleForm = useMemo(() => {
-    if (!currencies) return
-    if (!asset) return
+    if (!currencies || !asset) return <SkeletonForm items={2} />
     if (sale === SaleType.FIXED_PRICE)
       return (
         <SalesDirectForm
-          assetId={assetId}
           chainId={asset.chainId}
+          collectionAddress={asset.collectionAddress}
+          tokenId={asset.tokenId}
           standard={asset.collection.standard}
           currencies={currencies}
           blockExplorer={blockExplorer}
-          feesPerTenThousand={feesPerTenThousand}
           royaltiesPerTenThousand={royaltiesPerTenThousand}
           quantityAvailable={quantityAvailable}
           signer={signer}
@@ -172,19 +176,18 @@ const OfferPage: NextPage<Props> = ({ now }) => {
         <SalesAuctionForm
           signer={signer}
           assetId={asset.id}
-          currencies={currencies.filter((c) => c.address)} // Keep only non-native currency for bids on auction
+          currencies={auctionCurrencies}
           auctionValidity={environment.AUCTION_VALIDITY_IN_SECONDS}
           onCreated={onCreated}
         />
       )
-    throw new Error('invalid sale')
+    invariant(true, 'Invalid sale type')
   }, [
     currencies,
+    auctionCurrencies,
     asset,
     sale,
-    assetId,
     blockExplorer,
-    feesPerTenThousand,
     royaltiesPerTenThousand,
     quantityAvailable,
     signer,
@@ -192,14 +195,13 @@ const OfferPage: NextPage<Props> = ({ now }) => {
     onCreated,
   ])
 
-  if (loading) return <Loader fullPage />
-  if (!asset) return <></>
+  if (asset === null) return <Error statusCode={404} />
   return (
     <SmallLayout>
       <Head
-        title={t('offers.form.meta.title', asset)}
-        description={t('offers.form.meta.description', asset)}
-        image={asset.image}
+        title={asset ? t('offers.form.meta.title', asset) : ''}
+        description={asset ? t('offers.form.meta.description', asset) : ''}
+        image={asset?.image}
       />
 
       <BackButton onClick={back} />
@@ -215,43 +217,54 @@ const OfferPage: NextPage<Props> = ({ now }) => {
       >
         <GridItem overflow="hidden">
           <Box pointerEvents="none">
-            <TokenCard
-              asset={convertAsset(asset)}
-              creator={convertUser(asset.creator, asset.creator.address)}
-              sale={convertSale(asset.firstSale.nodes[0])}
-              auction={
-                asset.auctions.nodes[0]
-                  ? convertAuctionWithBestBid(asset.auctions.nodes[0])
-                  : undefined
-              }
-              numberOfSales={asset.firstSale.totalCount}
-              hasMultiCurrency={
-                parseInt(
-                  asset.currencySales.aggregates?.distinctCount?.currencyId,
-                  10,
-                ) > 1
-              }
-            />
+            {!asset ? (
+              <SkeletonTokenCard />
+            ) : (
+              <TokenCard
+                asset={convertAsset(asset)}
+                creator={convertUser(asset.creator, asset.creator.address)}
+                sale={convertSale(asset.firstSale.nodes[0])}
+                auction={
+                  asset.auctions.nodes[0]
+                    ? convertAuctionWithBestBid(asset.auctions.nodes[0])
+                    : undefined
+                }
+                numberOfSales={asset.firstSale.totalCount}
+                hasMultiCurrency={
+                  asset.firstSale.totalCurrencyDistinctCount > 1
+                }
+              />
+            )}
           </Box>
         </GridItem>
         <GridItem>
           <Flex direction="column" gap={8} grow={1} shrink={1} basis="0%">
-            <FormControl>
-              <FormLabel>{t('offers.form.options.label')}</FormLabel>
-              <FormHelperText mb={2}>
-                {sale === SaleType.FIXED_PRICE
-                  ? t('offers.form.options.hints.fixed')
-                  : t('offers.form.options.hints.auction')}
-              </FormHelperText>
-              <Flex mt={3} flexWrap="wrap" gap={4} {...getRootProps()}>
-                {saleOptions.map((choice, i) => {
-                  const radio = getRadioProps({ value: choice.value })
-                  return <Radio key={i} choice={choice} {...radio} />
-                })}
-              </Flex>
-            </FormControl>
+            {!asset ? (
+              <>
+                <Skeleton height="24px" width="100px" />
+                <Flex gap={4}>
+                  <Skeleton height="85px" width="100%" borderRadius="2xl" />
+                  <Skeleton height="85px" width="100%" borderRadius="2xl" />
+                </Flex>
+              </>
+            ) : (
+              <FormControl>
+                <FormLabel>{t('offers.form.options.label')}</FormLabel>
+                <FormHelperText mb={2}>
+                  {sale === SaleType.FIXED_PRICE
+                    ? t('offers.form.options.hints.fixed')
+                    : t('offers.form.options.hints.auction')}
+                </FormHelperText>
+                <Flex mt={3} flexWrap="wrap" gap={4} {...getRootProps()}>
+                  {saleOptions.map((choice, i) => {
+                    const radio = getRadioProps({ value: choice.value })
+                    return <Radio key={i} choice={choice} {...radio} />
+                  })}
+                </Flex>
+              </FormControl>
+            )}
 
-            {saleForm && saleForm}
+            {saleForm}
           </Flex>
         </GridItem>
       </Grid>

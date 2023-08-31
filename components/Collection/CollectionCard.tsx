@@ -2,6 +2,7 @@ import { Box, Flex, Heading, SimpleGrid, Text, VStack } from '@chakra-ui/react'
 import Image from 'components/Image/Image'
 import Link from 'components/Link/Link'
 import { convertCollection } from 'convert'
+import useTranslation from 'next-translate/useTranslation'
 import numbro from 'numbro'
 import { FC } from 'react'
 
@@ -10,15 +11,16 @@ type Props = {
 }
 
 const CollectionCard: FC<Props> = ({ collection }) => {
+  const { t } = useTranslation('templates')
   const convertTitle = (value: string | null, symbol: string | null) =>
     `${value ? value : '-'} ${symbol ? symbol : ''}`
   const convertValue = (value: string | null, symbol: string | null) => {
     const formattedValue = value
       ? numbro(value).format({
-          thousandSeparated: true,
-          trimMantissa: true,
-          mantissa: 4,
-        })
+        thousandSeparated: true,
+        trimMantissa: true,
+        mantissa: 2,
+      })
       : '-'
     return `${value ? formattedValue : '-'} ${symbol ? symbol : ''}`
   }
@@ -27,9 +29,10 @@ const CollectionCard: FC<Props> = ({ collection }) => {
       as={Link}
       href={`/collection/${collection.chainId}/${collection.address}`}
       bg="white"
-      border="1px"
-      borderColor="gray.200"
       borderRadius="2xl"
+      border="1px solid"
+      borderColor="gray.200"
+      shadow="sm"
       overflow="hidden"
       w="full"
     >
@@ -38,14 +41,14 @@ const CollectionCard: FC<Props> = ({ collection }) => {
           <Image
             src={collection.cover}
             alt={collection.name}
-            layout="fill"
-            objectFit="cover"
+            fill
             sizes="
             (min-width: 80em) 292px,
             (min-width: 62em) 25vw,
             (min-width: 48em) 33vw,
             (min-width: 30em) 50vw,
             100vw"
+            objectFit="cover"
           />
         )}
         <Box
@@ -64,8 +67,8 @@ const CollectionCard: FC<Props> = ({ collection }) => {
             <Image
               src={collection.image}
               alt={collection.name}
-              width={52}
-              height={52}
+              fill
+              sizes="52px"
               objectFit="cover"
             />
           )}
@@ -82,10 +85,15 @@ const CollectionCard: FC<Props> = ({ collection }) => {
         >
           {collection.name}
         </Heading>
-        <SimpleGrid columns={2} spacing={3} w="full">
+        <SimpleGrid columns={1} spacing={3} w="full">
           <Box>
-            <Text variant="subtitle2" color="gray.500">
-              Total Vol.
+            <Text
+              variant="subtitle2"
+              color="gray.500"
+              title={t('collection.card.total-volume')}
+              isTruncated
+            >
+              {t('collection.card.total-volume')}
             </Text>
             <Text
               variant="subtitle2"
@@ -101,9 +109,14 @@ const CollectionCard: FC<Props> = ({ collection }) => {
               )}
             </Text>
           </Box>
-          <Box>
-            <Text variant="subtitle2" color="gray.500">
-              Floor price
+          {/* <Box>
+            <Text
+              variant="subtitle2"
+              color="gray.500"
+              title={t('collection.card.floor-price')}
+              isTruncated
+            >
+              {t('collection.card.floor-price')}
             </Text>
             <Text
               variant="subtitle2"
@@ -118,7 +131,7 @@ const CollectionCard: FC<Props> = ({ collection }) => {
                 collection.floorPriceCurrencySymbol,
               )}
             </Text>
-          </Box>
+          </Box> */}
         </SimpleGrid>
       </VStack>
     </Box>

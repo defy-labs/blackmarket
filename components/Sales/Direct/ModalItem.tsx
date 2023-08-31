@@ -8,18 +8,13 @@ import {
 } from '@chakra-ui/react'
 import { Signer } from '@ethersproject/abstract-signer'
 import { BigNumber } from '@ethersproject/bignumber'
-import {
-  CancelOfferStep,
-  formatDate,
-  formatError,
-  isSameAddress,
-  useCancelOffer,
-} from '@nft/hooks'
+import { CancelOfferStep, useCancelOffer } from '@liteflow/react'
 import { HiBadgeCheck } from '@react-icons/all-files/hi/HiBadgeCheck'
 import useTranslation from 'next-translate/useTranslation'
-import { useCallback, VFC } from 'react'
+import { FC, useCallback } from 'react'
 import { BlockExplorer } from '../../../hooks/useBlockExplorer'
-import ButtonWithNetworkSwitch from '../../Button/SwitchNetwork'
+import { formatDate, formatError, isSameAddress } from '../../../utils'
+import ConnectButtonWithNetworkSwitch from '../../Button/ConnectWithNetworkSwitch'
 import Link from '../../Link/Link'
 import { ListItem } from '../../List/List'
 import CancelOfferModal from '../../Modal/CancelOffer'
@@ -51,7 +46,7 @@ export type Props = {
   onOfferCanceled: (id: string) => Promise<void>
 }
 
-const SaleDirectModalItem: VFC<Props> = ({
+const SaleDirectModalItem: FC<Props> = ({
   blockExplorer,
   sale,
   chainId,
@@ -68,7 +63,7 @@ const SaleDirectModalItem: VFC<Props> = ({
     if (!confirm(t('sales.direct.modal-item.cancel-confirmation'))) return
     try {
       onOpen()
-      await cancelOffer(sale)
+      await cancelOffer(sale.id)
       await onOfferCanceled(sale.id)
     } catch (e) {
       toast({
@@ -131,7 +126,9 @@ const SaleDirectModalItem: VFC<Props> = ({
             </span>
             <span>
               {t('sales.direct.modal-item.available', {
-                count: sale.availableQuantity.toNumber(),
+                count: sale.availableQuantity.lte(Number.MAX_SAFE_INTEGER - 1)
+                  ? sale.availableQuantity.toNumber()
+                  : Number.MAX_SAFE_INTEGER - 1,
               })}
             </span>
           </Flex>
@@ -148,7 +145,7 @@ const SaleDirectModalItem: VFC<Props> = ({
         action={
           !!currentAccount &&
           isSameAddress(sale.maker.address, currentAccount) ? (
-            <ButtonWithNetworkSwitch
+            <ConnectButtonWithNetworkSwitch
               chainId={chainId}
               variant="outline"
               colorScheme="gray"
@@ -159,7 +156,7 @@ const SaleDirectModalItem: VFC<Props> = ({
               <Text as="span" isTruncated>
                 {t('sales.direct.modal-item.cancel')}
               </Text>
-            </ButtonWithNetworkSwitch>
+            </ConnectButtonWithNetworkSwitch>
           ) : (
             <Button as={Link} href={`/checkout/${sale.id}`}>
               <Text as="span" isTruncated>

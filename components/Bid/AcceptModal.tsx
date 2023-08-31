@@ -27,7 +27,7 @@ import {
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber'
 import { FaImages } from '@react-icons/all-files/fa/FaImages'
 import useTranslation from 'next-translate/useTranslation'
-import { useEffect, useMemo, VFC } from 'react'
+import { FC, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
 export type Props = {
@@ -41,7 +41,7 @@ export type Props = {
   acceptBid: (quantity?: BigNumberish) => Promise<void>
 }
 
-const BidAcceptModal: VFC<Props> = ({
+const BidAcceptModal: FC<Props> = ({
   bid,
   acceptBid,
   isOpen,
@@ -62,9 +62,7 @@ const BidAcceptModal: VFC<Props> = ({
   })
   const maxQuantity = useMemo(
     () =>
-      totalOwned.lt(bid.availableQuantity)
-        ? totalOwned.toNumber()
-        : bid.availableQuantity.toNumber(),
+      totalOwned.lt(bid.availableQuantity) ? totalOwned : bid.availableQuantity,
     [bid, totalOwned],
   )
 
@@ -91,7 +89,7 @@ const BidAcceptModal: VFC<Props> = ({
                     <FormLabel htmlFor="quantity" m={0}>
                       {t('bid.modal.accept.quantity.label')}
                     </FormLabel>
-                    <FormHelperText>
+                    <FormHelperText m={0}>
                       {t('bid.modal.accept.quantity.suffix')}
                     </FormHelperText>
                   </HStack>
@@ -99,7 +97,11 @@ const BidAcceptModal: VFC<Props> = ({
                     <NumberInput
                       clampValueOnBlur={false}
                       min={1}
-                      max={maxQuantity}
+                      max={
+                        maxQuantity.lte(Number.MAX_SAFE_INTEGER - 1)
+                          ? maxQuantity.toNumber()
+                          : Number.MAX_SAFE_INTEGER - 1
+                      }
                       allowMouseWheel
                       w="full"
                       onChange={(x) => setValue('quantity', x)}
@@ -110,12 +112,10 @@ const BidAcceptModal: VFC<Props> = ({
                         {...register('quantity', {
                           required: t('bid.modal.accept.validation.required'),
                           validate: (value) => {
-                            if (
-                              parseInt(value, 10) < 1 ||
-                              parseInt(value, 10) > maxQuantity
-                            ) {
+                            const valueBN = BigNumber.from(value)
+                            if (valueBN.lt(1) || valueBN.gt(maxQuantity)) {
                               return t('bid.modal.accept.validation.in-range', {
-                                max: maxQuantity,
+                                max: maxQuantity.toString(),
                               })
                             }
                             if (!/^\d+$/.test(value)) {
@@ -138,7 +138,7 @@ const BidAcceptModal: VFC<Props> = ({
                   <FormHelperText>
                     <Text as="p" variant="text" color="gray.500">
                       {t('bid.modal.accept.quantity.available', {
-                        count: bid.availableQuantity.toNumber(),
+                        count: bid.availableQuantity.toString(),
                       })}
                     </Text>
                   </FormHelperText>
@@ -161,7 +161,9 @@ const BidAcceptModal: VFC<Props> = ({
                 <Heading as="h5" variant="heading3" color="brand.black">
                   <Text fontWeight="semibold">
                     {t('bid.modal.accept.owned.unit', {
-                      count: totalOwned.toNumber(),
+                      count: totalOwned.lte(Number.MAX_SAFE_INTEGER - 1)
+                        ? totalOwned.toNumber()
+                        : Number.MAX_SAFE_INTEGER - 1,
                     })}
                   </Text>
                 </Heading>

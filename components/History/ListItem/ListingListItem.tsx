@@ -1,10 +1,10 @@
 import { Flex, Icon, Text } from '@chakra-ui/react'
 import { BigNumber } from '@ethersproject/bignumber'
-import { formatDate } from '@nft/hooks'
 import { FaTag } from '@react-icons/all-files/fa/FaTag'
 import { HiBadgeCheck } from '@react-icons/all-files/hi/HiBadgeCheck'
 import Trans from 'next-translate/Trans'
-import { VFC } from 'react'
+import { FC } from 'react'
+import { formatDate } from '../../../utils'
 import Link from '../../Link/Link'
 import { ListItem } from '../../List/List'
 import Price from '../../Price/Price'
@@ -26,7 +26,7 @@ type IProps = {
   } | null
 }
 
-const ListingListItem: VFC<IProps> = ({
+const ListingListItem: FC<IProps> = ({
   currency,
   fromAddress,
   from,
@@ -41,7 +41,11 @@ const ListingListItem: VFC<IProps> = ({
         <Trans
           ns="components"
           i18nKey="history.listing.listed"
-          values={{ count: quantity.toNumber() }}
+          values={{
+            count: quantity.lte(Number.MAX_SAFE_INTEGER - 1)
+              ? quantity.toNumber()
+              : Number.MAX_SAFE_INTEGER - 1,
+          }}
           components={[
             <Text
               as="span"

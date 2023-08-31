@@ -3,7 +3,6 @@ import {
   Divider,
   Flex,
   Heading,
-  HStack,
   Icon,
   IconButton,
   Menu,
@@ -12,22 +11,19 @@ import {
   MenuList,
   Text,
 } from '@chakra-ui/react'
-import { formatAddress } from '@nft/hooks'
 import { FaDiscord } from '@react-icons/all-files/fa/FaDiscord'
 import { FaGlobe } from '@react-icons/all-files/fa/FaGlobe'
 import { FaTwitter } from '@react-icons/all-files/fa/FaTwitter'
 import { HiBadgeCheck } from '@react-icons/all-files/hi/HiBadgeCheck'
 import { HiOutlineDotsHorizontal } from '@react-icons/all-files/hi/HiOutlineDotsHorizontal'
-import Etherscan from 'components/Icons/Etherscan'
-import Image from 'components/Image/Image'
-import Link from 'components/Link/Link'
-import Truncate from 'components/Truncate/Truncate'
 import useBlockExplorer from 'hooks/useBlockExplorer'
 import useTranslation from 'next-translate/useTranslation'
-import numbro from 'numbro'
-import { FC, useMemo } from 'react'
-import ChakraLink from '../../components/Link/Link'
-import { chains } from '../../connectors'
+import { FC } from 'react'
+import Etherscan from '../../components/Icons/Etherscan'
+import Image from '../../components/Image/Image'
+import Link from '../../components/Link/Link'
+import Truncate from '../../components/Truncate/Truncate'
+import { formatAddress } from '../../utils'
 
 type Props = {
   collection: {
@@ -40,94 +36,19 @@ type Props = {
     twitter: string | null
     discord: string | null
     website: string | null
-    deployerAddress: string
     deployer: {
       address: string
       name: string | null
       username: string | null
       verified: boolean
-    } | null
-    totalVolume: string
-    totalVolumeCurrencySymbol: string
-    floorPrice: string | null
-    floorPriceCurrencySymbol: string | null
-    totalOwners: number
-    supply: number
+    }
   }
-  baseURL: string
   reportEmail: string
 }
 
 const CollectionHeader: FC<Props> = ({ collection, reportEmail }) => {
   const { t } = useTranslation('templates')
   const blockExplorer = useBlockExplorer(collection.chainId)
-  const chain = useMemo(
-    () => chains.find((x) => x.id === collection.chainId),
-    [collection.chainId],
-  )
-
-  const blocks = useMemo(
-    () => [
-      {
-        name: t('collection.header.data-labels.total-volume'),
-        value:
-          numbro(collection.totalVolume).format({
-            thousandSeparated: true,
-            trimMantissa: true,
-            mantissa: 4,
-          }) +
-          ' ' +
-          collection.totalVolumeCurrencySymbol,
-        title: `${collection.totalVolume} ${collection.totalVolumeCurrencySymbol}`,
-      },
-      {
-        name: t('collection.header.data-labels.floor-price'),
-        value: collection.floorPrice
-          ? numbro(collection.floorPrice).format({
-              thousandSeparated: true,
-              trimMantissa: true,
-              mantissa: 4,
-            }) +
-            ' ' +
-            collection.floorPriceCurrencySymbol
-          : '-',
-        title: `${collection.floorPrice || '-'} ${
-          collection.floorPriceCurrencySymbol
-        }`,
-      },
-      {
-        name: t('collection.header.data-labels.owners'),
-        value: numbro(collection.totalOwners).format({
-          thousandSeparated: true,
-        }),
-        title: collection.totalOwners.toString(),
-      },
-      {
-        name: t('collection.header.data-labels.items'),
-        value: numbro(collection.supply).format({ thousandSeparated: true }),
-        title: collection.supply.toString(),
-      },
-      {
-        type: 'separator',
-      },
-      {
-        name: t('collection.header.data-labels.chain'),
-        value: chain?.name,
-        title: chain?.name,
-      },
-    ],
-    [
-      collection.floorPrice,
-      collection.floorPriceCurrencySymbol,
-      collection.supply,
-      collection.totalOwners,
-      collection.totalVolume,
-      collection.totalVolumeCurrencySymbol,
-      chain,
-      t,
-    ],
-  )
-
   return (
     <>
       <Flex
@@ -141,12 +62,12 @@ const CollectionHeader: FC<Props> = ({ collection, reportEmail }) => {
           <Image
             src={collection.cover}
             alt={collection.name}
-            layout="fill"
-            objectFit="cover"
-            borderRadius={{ base: 0, sm: '2xl' }}
+            fill
             sizes="
             (min-width: 80em) 1216px,
             100vw"
+            borderRadius={{ base: 0, sm: '2xl' }}
+            objectFit="cover"
           />
         )}
         <Box
@@ -165,15 +86,21 @@ const CollectionHeader: FC<Props> = ({ collection, reportEmail }) => {
             <Image
               src={collection.image}
               alt={collection.name}
-              width={128}
-              height={128}
+              fill
+              sizes="124px"
               objectFit="cover"
             />
           )}
         </Box>
       </Flex>
-      <Flex pt={24} align="flex-start" justify="space-between" gap={4}>
-        <Box>
+      <Flex
+        flexDirection={{ base: 'column', sm: 'row' }}
+        pt={24}
+        align="flex-start"
+        justify="space-between"
+        gap={4}
+      >
+        <Box order={{ base: 1, sm: 0 }}>
           <Heading variant="title" pb={1}>
             {collection.name}
           </Heading>
@@ -181,20 +108,24 @@ const CollectionHeader: FC<Props> = ({ collection, reportEmail }) => {
             {t('collection.header.by')}{' '}
             <Text
               as={Link}
-              href={`/users/${collection.deployerAddress}`}
+              href={`/users/${collection.deployer.address}`}
               color="brand.black"
             >
               <Text as="span" color="">
-                {collection.deployer?.name ||
-                  formatAddress(collection.deployerAddress, 10)}
+                {collection?.deployer.name ||
+                  formatAddress(collection.deployer.address, 10)}
               </Text>
-              {collection.deployer?.verified && (
+              {collection.deployer.verified && (
                 <Icon as={HiBadgeCheck} color="brand.500" boxSize={5} />
               )}
             </Text>
           </Heading>
         </Box>
-        <Flex justify="flex-end">
+        <Flex
+          justify="flex-end"
+          alignSelf={{ base: 'flex-end', sm: 'normal' }}
+          order={{ base: 0, sm: 1 }}
+        >
           <Flex gap={4}>
             <IconButton
               as={Link}
@@ -254,7 +185,7 @@ const CollectionHeader: FC<Props> = ({ collection, reportEmail }) => {
               icon={<Icon as={HiOutlineDotsHorizontal} w={5} h={5} />}
             />
             <MenuList>
-              <ChakraLink
+              <Link
                 href={`mailto:${reportEmail}?subject=${encodeURI(
                   'Report a collection',
                 )}&body=${encodeURI(
@@ -263,44 +194,18 @@ const CollectionHeader: FC<Props> = ({ collection, reportEmail }) => {
                 isExternal
               >
                 <MenuItem>{t('collection.header.menu.report')}</MenuItem>
-              </ChakraLink>
+              </Link>
             </MenuList>
           </Menu>
         </Flex>
       </Flex>
-      {collection.description && (
+      {collection?.description && (
         <Box mt={4}>
           <Truncate size="lg" color="gray.500" length={200}>
             {collection.description}
           </Truncate>
         </Box>
       )}
-      <HStack spacing={8} mt={4} flexWrap="wrap">
-        {blocks.map((block, i) =>
-          block.type === 'separator' ? (
-            <Divider orientation="vertical" height="40px" key={i} />
-          ) : (
-            <Flex key={i} flexDirection="column" justifyContent="center" py={2}>
-              <Text
-                variant="button1"
-                title={block.title}
-                color="brand.black"
-                isTruncated
-              >
-                {block.value}
-              </Text>
-              <Text
-                variant="subtitle2"
-                title={block.name}
-                isTruncated
-                color="gray.500"
-              >
-                {block.name}
-              </Text>
-            </Flex>
-          ),
-        )}
-      </HStack>
     </>
   )
 }

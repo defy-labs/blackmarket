@@ -1,8 +1,8 @@
 import { Box, Flex, Text } from '@chakra-ui/react'
-import { dateFromNow } from '@nft/hooks'
-import { useMemo } from 'react'
+import { JSX, useMemo } from 'react'
 import invariant from 'ts-invariant'
 import { AccountVerificationStatus, NotificationAction } from '../../graphql'
+import { dateFromNow } from '../../utils'
 import Image from '../Image/Image'
 import Link from '../Link/Link'
 import AccountImage from '../Wallet/Image'
@@ -15,8 +15,8 @@ import {
   AuctionEndedReservePriceSeller,
   AuctionEndedWonBuyer,
   AuctionEndedWonSeller,
-  AuctionExpired,
   AuctionExpireSoon,
+  AuctionExpired,
   BidAccepted,
   BidCreated,
   BidExpired,
@@ -191,8 +191,8 @@ export default function NotificationDetail({
               <Image
                 src={content.image}
                 alt="Square Image"
-                width={56}
-                height={56}
+                fill
+                sizes="56px"
                 objectFit="cover"
               />
             </Box>

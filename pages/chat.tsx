@@ -1,12 +1,10 @@
 import { Box } from '@chakra-ui/react'
-import type { Account } from '@nft/chat'
-import { Chat as ChatComponent, ChatProvider } from '@nft/chat'
+import { Account, Chat, ChatProvider } from '@nft/chat'
 import request, { gql } from 'graphql-request'
 import { NextPage } from 'next'
 import { useCallback } from 'react'
 import Head from '../components/Head'
 import environment from '../environment'
-import useEagerConnect from '../hooks/useEagerConnect'
 import useLoginRedirect from '../hooks/useLoginRedirect'
 import useSigner from '../hooks/useSigner'
 import LargeLayout from '../layouts/large'
@@ -15,15 +13,21 @@ import { theme } from '../styles/theme'
 const accounts = new Map<string, Promise<Account>>()
 
 const ChatPage: NextPage = () => {
-  const ready = useEagerConnect()
   const signer = useSigner()
-  useLoginRedirect(ready)
+  useLoginRedirect()
 
   const lookupAddress = useCallback(async (address: string) => {
     const res = accounts.get(address)
     if (res) return res
-    const promise = request(
-      environment.GRAPHQL_URL,
+    const promise = request<{
+      account: {
+        name?: string
+        image?: string
+      }
+    }>(
+      `${
+        process.env.NEXT_PUBLIC_LITEFLOW_BASE_URL || 'https://api.liteflow.com'
+      }/${environment.LITEFLOW_API_KEY}/graphql`,
       gql`
         query LookupAccount($address: Address!) {
           account(address: $address) {
@@ -57,11 +61,11 @@ const ChatPage: NextPage = () => {
         mx={{ base: -6, lg: 0 }}
       >
         <ChatProvider
-          signer={signer as any}
+          signer={signer}
           theme={theme}
           lookupAddress={lookupAddress}
         >
-          <ChatComponent />
+          <Chat />
         </ChatProvider>
       </Box>
     </LargeLayout>

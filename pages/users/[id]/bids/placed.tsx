@@ -15,16 +15,14 @@ import {
   Tr,
   useToast,
 } from '@chakra-ui/react'
-import { dateFromNow, formatError, useIsLoggedIn } from '@nft/hooks'
+import { useIsLoggedIn } from '@liteflow/react'
 import { HiOutlineSearch } from '@react-icons/all-files/hi/HiOutlineSearch'
 import { NextPage } from 'next'
-import Trans from 'next-translate/Trans'
 import useTranslation from 'next-translate/useTranslation'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
 import CancelOfferButton from '../../../../components/Button/CancelOffer'
 import Empty from '../../../../components/Empty/Empty'
-import Head from '../../../../components/Head'
 import Image from '../../../../components/Image/Image'
 import Link from '../../../../components/Link/Link'
 import Loader from '../../../../components/Loader'
@@ -32,27 +30,22 @@ import Pagination from '../../../../components/Pagination/Pagination'
 import Price from '../../../../components/Price/Price'
 import UserProfileTemplate from '../../../../components/Profile'
 import Select from '../../../../components/Select/Select'
-import { convertBidFull, convertFullUser } from '../../../../convert'
+import { convertBidFull } from '../../../../convert'
 import environment from '../../../../environment'
 import {
   OfferOpenBuysOrderBy,
   useFetchUserBidsPlacedQuery,
 } from '../../../../graphql'
 import useAccount from '../../../../hooks/useAccount'
-import useEagerConnect from '../../../../hooks/useEagerConnect'
 import useOrderByQuery from '../../../../hooks/useOrderByQuery'
 import usePaginate from '../../../../hooks/usePaginate'
 import usePaginateQuery from '../../../../hooks/usePaginateQuery'
 import useRequiredQueryParamSingle from '../../../../hooks/useRequiredQueryParamSingle'
 import useSigner from '../../../../hooks/useSigner'
 import LargeLayout from '../../../../layouts/large'
+import { dateFromNow, formatError } from '../../../../utils'
 
-type Props = {
-  now: string
-}
-
-const BidPlacedPage: NextPage<Props> = ({ now }) => {
-  useEagerConnect()
+const BidPlacedPage: NextPage = () => {
   const signer = useSigner()
   const { t } = useTranslation('templates')
   const { replace, pathname, query } = useRouter()
@@ -64,25 +57,18 @@ const BidPlacedPage: NextPage<Props> = ({ now }) => {
   const userAddress = useRequiredQueryParamSingle('id')
   const ownerLoggedIn = useIsLoggedIn(userAddress)
 
-  const date = useMemo(() => new Date(now), [now])
-  const { data, refetch, loading } = useFetchUserBidsPlacedQuery({
+  const { data, refetch } = useFetchUserBidsPlacedQuery({
     variables: {
       address: userAddress,
       limit,
       offset,
       orderBy,
-      now: date,
     },
   })
 
-  const userAccount = useMemo(
-    () => convertFullUser(data?.account || null, userAddress),
-    [data, userAddress],
-  )
-
   const bids = useMemo(
     () =>
-      (data?.bids?.nodes || []).map((x) => ({
+      data?.bids?.nodes.map((x) => ({
         ...convertBidFull(x),
         asset: x.asset,
       })),
@@ -103,27 +89,14 @@ const BidPlacedPage: NextPage<Props> = ({ now }) => {
     },
     [replace, pathname, query],
   )
-  if (loading) return <Loader fullPage />
+
   return (
     <LargeLayout>
-      <Head
-        title={userAccount?.name || userAddress}
-        description={userAccount?.description || ''}
-        image={userAccount?.image || ''}
-      />
-
       <UserProfileTemplate
         signer={signer}
-        account={userAccount}
         currentAccount={address}
+        address={userAddress}
         currentTab="bids"
-        totals={
-          new Map([
-            ['created', data?.created?.totalCount || 0],
-            ['on-sale', data?.onSale?.totalCount || 0],
-            ['owned', data?.owned?.totalCount || 0],
-          ])
-        }
         loginUrlForReferral={environment.BASE_URL + '/login'}
       >
         <Stack spacing={6}>
@@ -186,141 +159,136 @@ const BidPlacedPage: NextPage<Props> = ({ now }) => {
             </Box>
           </Flex>
 
-          <TableContainer bg="white" shadow="base" rounded="lg">
-            <Table>
-              <Thead>
-                <Tr>
-                  <Th>{t('user.bid-placed.table.item')}</Th>
-                  <Th isNumeric>{t('user.bid-placed.table.price')}</Th>
-                  <Th>{t('user.bid-placed.table.status')}</Th>
-                  <Th>{t('user.bid-placed.table.created')}</Th>
-                  <Th isNumeric></Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {bids.map((item) => (
-                  <Tr fontSize="sm" key={item.id}>
-                    <Td>
-                      <Flex as={Link} href={`/tokens/${item.asset.id}`} gap={3}>
-                        <Image
-                          src={item.asset.image}
-                          alt={item.asset.name}
-                          width={40}
-                          height={40}
-                          layout="fixed"
-                          objectFit="cover"
-                          rounded="full"
-                          h={10}
-                          w={10}
-                        />
-                        <Flex
-                          direction="column"
-                          my="auto"
-                          title={item.asset.name}
-                        >
-                          <Text as="span" noOfLines={1}>
-                            {item.asset.name}
-                          </Text>
-                          {item.availableQuantity.gt(1) && (
-                            <Text as="span" variant="caption" color="gray.500">
-                              {t('user.bid-placed.requested', {
-                                value: item.availableQuantity.toString(),
-                              })}
-                            </Text>
-                          )}
-                        </Flex>
-                      </Flex>
-                    </Td>
-                    <Td isNumeric>
-                      <Text
-                        as={Price}
-                        noOfLines={1}
-                        amount={item.unitPrice.mul(item.availableQuantity)}
-                        currency={item.currency}
-                      />
-                    </Td>
-                    <Td>
-                      {item.expiredAt && item.expiredAt <= new Date()
-                        ? t('user.bid-placed.status.expired')
-                        : t('user.bid-placed.status.active')}
-                    </Td>
-                    <Td>{dateFromNow(item.createdAt)}</Td>
-                    <Td isNumeric>
-                      {ownerLoggedIn && (
-                        <>
-                          {!item.expiredAt || item.expiredAt > new Date() ? (
-                            <CancelOfferButton
-                              variant="outline"
-                              colorScheme="gray"
-                              signer={signer}
-                              offerId={item.id}
-                              chainId={item.asset.chainId}
-                              onCanceled={onCanceled}
-                              onError={(e) =>
-                                toast({
-                                  status: 'error',
-                                  title: formatError(e),
-                                })
-                              }
-                              title={t('user.bid-placed.cancel.title')}
-                            >
-                              <Text as="span" isTruncated>
-                                {t('user.bid-placed.actions.cancel')}
-                              </Text>
-                            </CancelOfferButton>
-                          ) : (
-                            <Button
-                              as={Link}
-                              href={`/tokens/${item.asset.id}/bid`}
-                              variant="outline"
-                              colorScheme="gray"
-                            >
-                              <Text as="span" isTruncated>
-                                {t('user.bid-placed.actions.new')}
-                              </Text>
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </Td>
+          {bids === undefined ? (
+            <Loader />
+          ) : bids.length > 0 ? (
+            <TableContainer bg="white" shadow="base" rounded="lg">
+              <Table>
+                <Thead>
+                  <Tr>
+                    <Th>{t('user.bid-placed.table.item')}</Th>
+                    <Th isNumeric>{t('user.bid-placed.table.price')}</Th>
+                    <Th>{t('user.bid-placed.table.status')}</Th>
+                    <Th>{t('user.bid-placed.table.created')}</Th>
+                    <Th isNumeric></Th>
                   </Tr>
-                ))}
-              </Tbody>
-            </Table>
-            {bids.length === 0 && (
-              <Empty
-                icon={
-                  <Icon as={HiOutlineSearch} w={8} h={8} color="gray.400" />
-                }
-                title={t('user.bid-placed.table.empty.title')}
-                description={t('user.bid-placed.table.empty.description')}
-              />
-            )}
-          </TableContainer>
-
-          <Pagination
-            limit={limit}
-            limits={[environment.PAGINATION_LIMIT, 24, 36, 48]}
-            onLimitChange={changeLimit}
-            onPageChange={changePage}
-            page={page}
-            total={data?.bids?.totalCount || 0}
-            result={{
-              label: t('pagination.result.label'),
-              caption: (props) => (
-                <Trans
-                  ns="templates"
-                  i18nKey="pagination.result.caption"
-                  values={props}
-                  components={[
-                    <Text as="span" color="brand.black" key="text" />,
-                  ]}
-                />
-              ),
-              pages: (props) =>
-                t('pagination.result.pages', { count: props.total }),
-            }}
-          />
+                </Thead>
+                <Tbody>
+                  {bids.map((item) => (
+                    <Tr fontSize="sm" key={item.id}>
+                      <Td>
+                        <Flex
+                          as={Link}
+                          href={`/tokens/${item.asset.id}`}
+                          gap={3}
+                        >
+                          <Image
+                            src={item.asset.image}
+                            alt={item.asset.name}
+                            width={40}
+                            height={40}
+                            h={10}
+                            w={10}
+                            objectFit="cover"
+                            rounded="2xl"
+                          />
+                          <Flex
+                            direction="column"
+                            my="auto"
+                            title={item.asset.name}
+                          >
+                            <Text as="span" noOfLines={1}>
+                              {item.asset.name}
+                            </Text>
+                            {item.availableQuantity.gt(1) && (
+                              <Text
+                                as="span"
+                                variant="caption"
+                                color="gray.500"
+                              >
+                                {t('user.bid-placed.requested', {
+                                  value: item.availableQuantity.toString(),
+                                })}
+                              </Text>
+                            )}
+                          </Flex>
+                        </Flex>
+                      </Td>
+                      <Td isNumeric>
+                        <Text
+                          as={Price}
+                          noOfLines={1}
+                          amount={item.unitPrice.mul(item.availableQuantity)}
+                          currency={item.currency}
+                        />
+                      </Td>
+                      <Td>
+                        {item.expiredAt && item.expiredAt <= new Date()
+                          ? t('user.bid-placed.status.expired')
+                          : t('user.bid-placed.status.active')}
+                      </Td>
+                      <Td>{dateFromNow(item.createdAt)}</Td>
+                      <Td isNumeric>
+                        {ownerLoggedIn && (
+                          <>
+                            {!item.expiredAt || item.expiredAt > new Date() ? (
+                              <CancelOfferButton
+                                variant="outline"
+                                colorScheme="gray"
+                                signer={signer}
+                                offerId={item.id}
+                                chainId={item.asset.chainId}
+                                onCanceled={onCanceled}
+                                onError={(e) =>
+                                  toast({
+                                    status: 'error',
+                                    title: formatError(e),
+                                  })
+                                }
+                                title={t('user.bid-placed.cancel.title')}
+                              >
+                                <Text as="span" isTruncated>
+                                  {t('user.bid-placed.actions.cancel')}
+                                </Text>
+                              </CancelOfferButton>
+                            ) : (
+                              <Button
+                                as={Link}
+                                href={`/tokens/${item.asset.id}/bid`}
+                                variant="outline"
+                                colorScheme="gray"
+                              >
+                                <Text as="span" isTruncated>
+                                  {t('user.bid-placed.actions.new')}
+                                </Text>
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Empty
+              icon={<Icon as={HiOutlineSearch} w={8} h={8} color="gray.400" />}
+              title={t('user.bid-placed.table.empty.title')}
+              description={t('user.bid-placed.table.empty.description')}
+            />
+          )}
+          {bids?.length !== 0 && (
+            <Pagination
+              limit={limit}
+              limits={[environment.PAGINATION_LIMIT, 24, 36, 48]}
+              page={page}
+              onPageChange={changePage}
+              onLimitChange={changeLimit}
+              hasNextPage={data?.bids?.pageInfo.hasNextPage}
+              hasPreviousPage={data?.bids?.pageInfo.hasPreviousPage}
+            />
+          )}
         </Stack>
       </UserProfileTemplate>
     </LargeLayout>

@@ -1,6 +1,7 @@
 import { Text } from '@chakra-ui/react'
-import { formatAddress } from '@nft/hooks'
 import Trans from 'next-translate/Trans'
+import { JSX } from 'react'
+import { formatAddress } from '../../../utils'
 import Price from '../../Price/Price'
 
 export type IProps = {

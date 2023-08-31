@@ -10,10 +10,10 @@ import {
   Text,
 } from '@chakra-ui/react'
 import { BigNumber } from '@ethersproject/bignumber'
-import { formatDate } from '@nft/hooks'
 import Trans from 'next-translate/Trans'
 import useTranslation from 'next-translate/useTranslation'
-import { VFC } from 'react'
+import { FC } from 'react'
+import { formatDate } from '../../../../utils'
 import Link from '../../../Link/Link'
 import Price from '../../../Price/Price'
 import WalletAddress from '../../../Wallet/Address'
@@ -38,7 +38,7 @@ type Props = {
   }
 }
 
-const SaleAuctionIncompleteSuccess: VFC<Props> = ({
+const SaleAuctionIncompleteSuccess: FC<Props> = ({
   isOwner,
   auction,
   bestBid,

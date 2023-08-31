@@ -47,7 +47,7 @@ const ResourcesHomeSection: FC<Props> = () => {
 
   useEffect(() => {
     const contentfulClient = getContentfulClient();
-    contentfulClient?.query<ContentfulHomePageQuery>({
+    void contentfulClient?.query<ContentfulHomePageQuery>({
       query: ContentfulHomePageDocument,
     }).then(r => setResources(r.data.homePage?.resourcesCollection?.items as ContentTypeResourceLink[]))
   }, [])

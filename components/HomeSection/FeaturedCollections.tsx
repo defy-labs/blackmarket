@@ -14,7 +14,7 @@ const FeaturedCollections: FC<Props> = () => {
 
 	useEffect(() => {
 		const contentfulClient = getContentfulClient();
-		contentfulClient?.query<ContentfulHomePageQuery>({
+		void contentfulClient?.query<ContentfulHomePageQuery>({
 			query: ContentfulHomePageDocument,
 		}).then(r => setFeaturedCollections(r.data.homePage?.featuredCollectionsCollection?.items as TokenCollection[] ?? []))
 	}, [])

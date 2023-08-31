@@ -41,7 +41,7 @@ const AssetsHomeSection: FC<Props> = ({ date }) => {
 
   useEffect(() => {
     const contentfulClient = getContentfulClient();
-    contentfulClient?.query<ContentfulHomePageQuery>({
+    void contentfulClient?.query<ContentfulHomePageQuery>({
       query: ContentfulHomePageDocument,
     }).then(r => setFeaturedTokens(r.data.homePage?.notableTokens as string[] ?? []))
   }, [])
@@ -54,11 +54,10 @@ const AssetsHomeSection: FC<Props> = ({ date }) => {
     skip: featuredTokens.length > 0,
   })
   useHandleQueryError(defaultAssetQuery)
-  const defaultAssetData = defaultAssetQuery.data
 
   const assetIds = useMemo(() => {
     return featuredTokens
-  }, [defaultAssetData, date])
+  }, [featuredTokens, date])
 
   const assetsQuery = useFetchAssetsQuery({
     variables: {

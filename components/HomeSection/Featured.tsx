@@ -60,14 +60,14 @@ const FeaturedHomeSection: FC<Props> = ({ date }) => {
 
   useEffect(() => {
     const contentfulClient = getContentfulClient();
-    contentfulClient?.query<ContentfulHomePageQuery>({
+    void contentfulClient?.query<ContentfulHomePageQuery>({
       query: ContentfulHomePageDocument,
     }).then(r => setFeaturedTokens(r.data.homePage?.featuredTokens as string[] ?? []))
   }, [])
 
   const reloadInfo = useCallback(async () => {
     void featureAssetsQuery.refetch()
-  }, [featureAssetsQuery, featuredTokens])
+  }, [featureAssetsQuery])
 
   const featuredAssets = useMemo(
     () =>
@@ -97,7 +97,7 @@ const FeaturedHomeSection: FC<Props> = ({ date }) => {
           onAuctionAccepted={reloadInfo}
         />
       )),
-    [featured, address, signer, reloadInfo, currenciesQuery, featuredTokens],
+    [featured, address, signer, reloadInfo, currenciesQuery],
   )
 
   if (!environment.FEATURED_TOKEN.length) return null

@@ -3,11 +3,24 @@ query ContentfulHomePage {
     name
     featuredTokens
     notableTokens
+    notableCollections
     featuredCollectionsCollection {
       items {
         name
         collectionAddress
         featureImage {
+          title
+          url
+        }
+      }
+    }
+    resourcesCollection {
+      items {
+        title
+        description
+        href
+        isExternal
+        image {
           title
           url
         }

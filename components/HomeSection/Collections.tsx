@@ -27,7 +27,7 @@ const CollectionsHomeSection: FC<Props> = () => {
     const contentfulClient = getContentfulClient();
     contentfulClient?.query<ContentfulHomePageQuery>({
       query: ContentfulHomePageDocument,
-    }).then(r => setFeaturedCollections(r.data.homePage?.featuredCollectionsCollection?.items.map(i => i?.collectionAddress) as string[] ?? []))
+    }).then(r => setFeaturedCollections(r.data.homePage?.notableCollections as string[] ?? []))
   }, [])
 
   const collectionsQuery = useFetchCollectionsQuery({

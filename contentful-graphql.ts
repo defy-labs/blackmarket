@@ -171,9 +171,19 @@ export type AssetFilter = {
 
 export type AssetLinkingCollections = {
   __typename?: 'AssetLinkingCollections';
+  contentTypeResourceLinkCollection?: Maybe<ContentTypeResourceLinkCollection>;
   entryCollection?: Maybe<EntryCollection>;
   modalCollection?: Maybe<ModalCollection>;
   tokenCollectionCollection?: Maybe<TokenCollectionCollection>;
+};
+
+
+export type AssetLinkingCollectionsContentTypeResourceLinkCollectionArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  locale?: InputMaybe<Scalars['String']['input']>;
+  order?: InputMaybe<Array<InputMaybe<AssetLinkingCollectionsContentTypeResourceLinkCollectionOrder>>>;
+  preview?: InputMaybe<Scalars['Boolean']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -201,6 +211,25 @@ export type AssetLinkingCollectionsTokenCollectionCollectionArgs = {
   preview?: InputMaybe<Scalars['Boolean']['input']>;
   skip?: InputMaybe<Scalars['Int']['input']>;
 };
+
+export enum AssetLinkingCollectionsContentTypeResourceLinkCollectionOrder {
+  DescriptionAsc = 'description_ASC',
+  DescriptionDesc = 'description_DESC',
+  HrefAsc = 'href_ASC',
+  HrefDesc = 'href_DESC',
+  IsExternalAsc = 'isExternal_ASC',
+  IsExternalDesc = 'isExternal_DESC',
+  SysFirstPublishedAtAsc = 'sys_firstPublishedAt_ASC',
+  SysFirstPublishedAtDesc = 'sys_firstPublishedAt_DESC',
+  SysIdAsc = 'sys_id_ASC',
+  SysIdDesc = 'sys_id_DESC',
+  SysPublishedAtAsc = 'sys_publishedAt_ASC',
+  SysPublishedAtDesc = 'sys_publishedAt_DESC',
+  SysPublishedVersionAsc = 'sys_publishedVersion_ASC',
+  SysPublishedVersionDesc = 'sys_publishedVersion_DESC',
+  TitleAsc = 'title_ASC',
+  TitleDesc = 'title_DESC'
+}
 
 export enum AssetLinkingCollectionsModalCollectionOrder {
   SysFirstPublishedAtAsc = 'sys_firstPublishedAt_ASC',
@@ -251,6 +280,151 @@ export enum AssetOrder {
   UrlDesc = 'url_DESC',
   WidthAsc = 'width_ASC',
   WidthDesc = 'width_DESC'
+}
+
+/** [See type definition](https://app.contentful.com/spaces/u9c8r3tap7y9/content_types/resourceLink) */
+export type ContentTypeResourceLink = Entry & {
+  __typename?: 'ContentTypeResourceLink';
+  contentfulMetadata: ContentfulMetadata;
+  description?: Maybe<Scalars['String']['output']>;
+  href?: Maybe<Scalars['String']['output']>;
+  image?: Maybe<Asset>;
+  isExternal?: Maybe<Scalars['Boolean']['output']>;
+  linkedFrom?: Maybe<ContentTypeResourceLinkLinkingCollections>;
+  sys: Sys;
+  title?: Maybe<Scalars['String']['output']>;
+};
+
+
+/** [See type definition](https://app.contentful.com/spaces/u9c8r3tap7y9/content_types/resourceLink) */
+export type ContentTypeResourceLinkDescriptionArgs = {
+  locale?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** [See type definition](https://app.contentful.com/spaces/u9c8r3tap7y9/content_types/resourceLink) */
+export type ContentTypeResourceLinkHrefArgs = {
+  locale?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** [See type definition](https://app.contentful.com/spaces/u9c8r3tap7y9/content_types/resourceLink) */
+export type ContentTypeResourceLinkImageArgs = {
+  locale?: InputMaybe<Scalars['String']['input']>;
+  preview?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+/** [See type definition](https://app.contentful.com/spaces/u9c8r3tap7y9/content_types/resourceLink) */
+export type ContentTypeResourceLinkIsExternalArgs = {
+  locale?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** [See type definition](https://app.contentful.com/spaces/u9c8r3tap7y9/content_types/resourceLink) */
+export type ContentTypeResourceLinkLinkedFromArgs = {
+  allowedLocales?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
+
+/** [See type definition](https://app.contentful.com/spaces/u9c8r3tap7y9/content_types/resourceLink) */
+export type ContentTypeResourceLinkTitleArgs = {
+  locale?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type ContentTypeResourceLinkCollection = {
+  __typename?: 'ContentTypeResourceLinkCollection';
+  items: Array<Maybe<ContentTypeResourceLink>>;
+  limit: Scalars['Int']['output'];
+  skip: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
+export type ContentTypeResourceLinkFilter = {
+  AND?: InputMaybe<Array<InputMaybe<ContentTypeResourceLinkFilter>>>;
+  OR?: InputMaybe<Array<InputMaybe<ContentTypeResourceLinkFilter>>>;
+  contentfulMetadata?: InputMaybe<ContentfulMetadataFilter>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  description_contains?: InputMaybe<Scalars['String']['input']>;
+  description_exists?: InputMaybe<Scalars['Boolean']['input']>;
+  description_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  description_not?: InputMaybe<Scalars['String']['input']>;
+  description_not_contains?: InputMaybe<Scalars['String']['input']>;
+  description_not_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  href?: InputMaybe<Scalars['String']['input']>;
+  href_contains?: InputMaybe<Scalars['String']['input']>;
+  href_exists?: InputMaybe<Scalars['Boolean']['input']>;
+  href_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  href_not?: InputMaybe<Scalars['String']['input']>;
+  href_not_contains?: InputMaybe<Scalars['String']['input']>;
+  href_not_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  image_exists?: InputMaybe<Scalars['Boolean']['input']>;
+  isExternal?: InputMaybe<Scalars['Boolean']['input']>;
+  isExternal_exists?: InputMaybe<Scalars['Boolean']['input']>;
+  isExternal_not?: InputMaybe<Scalars['Boolean']['input']>;
+  sys?: InputMaybe<SysFilter>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  title_contains?: InputMaybe<Scalars['String']['input']>;
+  title_exists?: InputMaybe<Scalars['Boolean']['input']>;
+  title_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  title_not?: InputMaybe<Scalars['String']['input']>;
+  title_not_contains?: InputMaybe<Scalars['String']['input']>;
+  title_not_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
+export type ContentTypeResourceLinkLinkingCollections = {
+  __typename?: 'ContentTypeResourceLinkLinkingCollections';
+  entryCollection?: Maybe<EntryCollection>;
+  homePageCollection?: Maybe<HomePageCollection>;
+};
+
+
+export type ContentTypeResourceLinkLinkingCollectionsEntryCollectionArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  locale?: InputMaybe<Scalars['String']['input']>;
+  preview?: InputMaybe<Scalars['Boolean']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type ContentTypeResourceLinkLinkingCollectionsHomePageCollectionArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  locale?: InputMaybe<Scalars['String']['input']>;
+  order?: InputMaybe<Array<InputMaybe<ContentTypeResourceLinkLinkingCollectionsHomePageCollectionOrder>>>;
+  preview?: InputMaybe<Scalars['Boolean']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum ContentTypeResourceLinkLinkingCollectionsHomePageCollectionOrder {
+  NameAsc = 'name_ASC',
+  NameDesc = 'name_DESC',
+  SysFirstPublishedAtAsc = 'sys_firstPublishedAt_ASC',
+  SysFirstPublishedAtDesc = 'sys_firstPublishedAt_DESC',
+  SysIdAsc = 'sys_id_ASC',
+  SysIdDesc = 'sys_id_DESC',
+  SysPublishedAtAsc = 'sys_publishedAt_ASC',
+  SysPublishedAtDesc = 'sys_publishedAt_DESC',
+  SysPublishedVersionAsc = 'sys_publishedVersion_ASC',
+  SysPublishedVersionDesc = 'sys_publishedVersion_DESC'
+}
+
+export enum ContentTypeResourceLinkOrder {
+  DescriptionAsc = 'description_ASC',
+  DescriptionDesc = 'description_DESC',
+  HrefAsc = 'href_ASC',
+  HrefDesc = 'href_DESC',
+  IsExternalAsc = 'isExternal_ASC',
+  IsExternalDesc = 'isExternal_DESC',
+  SysFirstPublishedAtAsc = 'sys_firstPublishedAt_ASC',
+  SysFirstPublishedAtDesc = 'sys_firstPublishedAt_DESC',
+  SysIdAsc = 'sys_id_ASC',
+  SysIdDesc = 'sys_id_DESC',
+  SysPublishedAtAsc = 'sys_publishedAt_ASC',
+  SysPublishedAtDesc = 'sys_publishedAt_DESC',
+  SysPublishedVersionAsc = 'sys_publishedVersion_ASC',
+  SysPublishedVersionDesc = 'sys_publishedVersion_DESC',
+  TitleAsc = 'title_ASC',
+  TitleDesc = 'title_DESC'
 }
 
 export type ContentfulMetadata = {
@@ -318,7 +492,9 @@ export type HomePage = Entry & {
   featuredTokens?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   linkedFrom?: Maybe<HomePageLinkingCollections>;
   name?: Maybe<Scalars['String']['output']>;
+  notableCollections?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   notableTokens?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  resourcesCollection?: Maybe<HomePageResourcesCollection>;
   sys: Sys;
 };
 
@@ -353,8 +529,25 @@ export type HomePageNameArgs = {
 
 
 /** [See type definition](https://app.contentful.com/spaces/u9c8r3tap7y9/content_types/homePage) */
+export type HomePageNotableCollectionsArgs = {
+  locale?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** [See type definition](https://app.contentful.com/spaces/u9c8r3tap7y9/content_types/homePage) */
 export type HomePageNotableTokensArgs = {
   locale?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** [See type definition](https://app.contentful.com/spaces/u9c8r3tap7y9/content_types/homePage) */
+export type HomePageResourcesCollectionArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  locale?: InputMaybe<Scalars['String']['input']>;
+  order?: InputMaybe<Array<InputMaybe<HomePageResourcesCollectionOrder>>>;
+  preview?: InputMaybe<Scalars['Boolean']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<ContentTypeResourceLinkFilter>;
 };
 
 export type HomePageCollection = {
@@ -405,10 +598,16 @@ export type HomePageFilter = {
   name_not?: InputMaybe<Scalars['String']['input']>;
   name_not_contains?: InputMaybe<Scalars['String']['input']>;
   name_not_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  notableCollections_contains_all?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  notableCollections_contains_none?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  notableCollections_contains_some?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  notableCollections_exists?: InputMaybe<Scalars['Boolean']['input']>;
   notableTokens_contains_all?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   notableTokens_contains_none?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   notableTokens_contains_some?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   notableTokens_exists?: InputMaybe<Scalars['Boolean']['input']>;
+  resources?: InputMaybe<CfContentTypeResourceLinkNestedFilter>;
+  resourcesCollection_exists?: InputMaybe<Scalars['Boolean']['input']>;
   sys?: InputMaybe<SysFilter>;
 };
 
@@ -436,6 +635,33 @@ export enum HomePageOrder {
   SysPublishedAtDesc = 'sys_publishedAt_DESC',
   SysPublishedVersionAsc = 'sys_publishedVersion_ASC',
   SysPublishedVersionDesc = 'sys_publishedVersion_DESC'
+}
+
+export type HomePageResourcesCollection = {
+  __typename?: 'HomePageResourcesCollection';
+  items: Array<Maybe<ContentTypeResourceLink>>;
+  limit: Scalars['Int']['output'];
+  skip: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
+export enum HomePageResourcesCollectionOrder {
+  DescriptionAsc = 'description_ASC',
+  DescriptionDesc = 'description_DESC',
+  HrefAsc = 'href_ASC',
+  HrefDesc = 'href_DESC',
+  IsExternalAsc = 'isExternal_ASC',
+  IsExternalDesc = 'isExternal_DESC',
+  SysFirstPublishedAtAsc = 'sys_firstPublishedAt_ASC',
+  SysFirstPublishedAtDesc = 'sys_firstPublishedAt_DESC',
+  SysIdAsc = 'sys_id_ASC',
+  SysIdDesc = 'sys_id_DESC',
+  SysPublishedAtAsc = 'sys_publishedAt_ASC',
+  SysPublishedAtDesc = 'sys_publishedAt_DESC',
+  SysPublishedVersionAsc = 'sys_publishedVersion_ASC',
+  SysPublishedVersionDesc = 'sys_publishedVersion_DESC',
+  TitleAsc = 'title_ASC',
+  TitleDesc = 'title_DESC'
 }
 
 export enum ImageFormat {
@@ -629,6 +855,8 @@ export type Query = {
   __typename?: 'Query';
   asset?: Maybe<Asset>;
   assetCollection?: Maybe<AssetCollection>;
+  contentTypeResourceLink?: Maybe<ContentTypeResourceLink>;
+  contentTypeResourceLinkCollection?: Maybe<ContentTypeResourceLinkCollection>;
   entryCollection?: Maybe<EntryCollection>;
   homePage?: Maybe<HomePage>;
   homePageCollection?: Maybe<HomePageCollection>;
@@ -653,6 +881,23 @@ export type QueryAssetCollectionArgs = {
   preview?: InputMaybe<Scalars['Boolean']['input']>;
   skip?: InputMaybe<Scalars['Int']['input']>;
   where?: InputMaybe<AssetFilter>;
+};
+
+
+export type QueryContentTypeResourceLinkArgs = {
+  id: Scalars['String']['input'];
+  locale?: InputMaybe<Scalars['String']['input']>;
+  preview?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type QueryContentTypeResourceLinkCollectionArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  locale?: InputMaybe<Scalars['String']['input']>;
+  order?: InputMaybe<Array<InputMaybe<ContentTypeResourceLinkOrder>>>;
+  preview?: InputMaybe<Scalars['Boolean']['input']>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<ContentTypeResourceLinkFilter>;
 };
 
 
@@ -880,6 +1125,38 @@ export enum TokenCollectionOrder {
   SysPublishedVersionDesc = 'sys_publishedVersion_DESC'
 }
 
+export type CfContentTypeResourceLinkNestedFilter = {
+  AND?: InputMaybe<Array<InputMaybe<CfContentTypeResourceLinkNestedFilter>>>;
+  OR?: InputMaybe<Array<InputMaybe<CfContentTypeResourceLinkNestedFilter>>>;
+  contentfulMetadata?: InputMaybe<ContentfulMetadataFilter>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  description_contains?: InputMaybe<Scalars['String']['input']>;
+  description_exists?: InputMaybe<Scalars['Boolean']['input']>;
+  description_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  description_not?: InputMaybe<Scalars['String']['input']>;
+  description_not_contains?: InputMaybe<Scalars['String']['input']>;
+  description_not_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  href?: InputMaybe<Scalars['String']['input']>;
+  href_contains?: InputMaybe<Scalars['String']['input']>;
+  href_exists?: InputMaybe<Scalars['Boolean']['input']>;
+  href_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  href_not?: InputMaybe<Scalars['String']['input']>;
+  href_not_contains?: InputMaybe<Scalars['String']['input']>;
+  href_not_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  image_exists?: InputMaybe<Scalars['Boolean']['input']>;
+  isExternal?: InputMaybe<Scalars['Boolean']['input']>;
+  isExternal_exists?: InputMaybe<Scalars['Boolean']['input']>;
+  isExternal_not?: InputMaybe<Scalars['Boolean']['input']>;
+  sys?: InputMaybe<SysFilter>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  title_contains?: InputMaybe<Scalars['String']['input']>;
+  title_exists?: InputMaybe<Scalars['Boolean']['input']>;
+  title_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  title_not?: InputMaybe<Scalars['String']['input']>;
+  title_not_contains?: InputMaybe<Scalars['String']['input']>;
+  title_not_in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
 export type CfTokenCollectionNestedFilter = {
   AND?: InputMaybe<Array<InputMaybe<CfTokenCollectionNestedFilter>>>;
   OR?: InputMaybe<Array<InputMaybe<CfTokenCollectionNestedFilter>>>;
@@ -905,7 +1182,7 @@ export type CfTokenCollectionNestedFilter = {
 export type ContentfulHomePageQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ContentfulHomePageQuery = { __typename?: 'Query', homePage?: { __typename?: 'HomePage', name?: string | null, featuredTokens?: Array<string | null> | null, notableTokens?: Array<string | null> | null, featuredCollectionsCollection?: { __typename?: 'HomePageFeaturedCollectionsCollection', items: Array<{ __typename?: 'TokenCollection', name?: string | null, collectionAddress?: string | null, featureImage?: { __typename?: 'Asset', title?: string | null, url?: string | null } | null } | null> } | null } | null };
+export type ContentfulHomePageQuery = { __typename?: 'Query', homePage?: { __typename?: 'HomePage', name?: string | null, featuredTokens?: Array<string | null> | null, notableTokens?: Array<string | null> | null, notableCollections?: Array<string | null> | null, featuredCollectionsCollection?: { __typename?: 'HomePageFeaturedCollectionsCollection', items: Array<{ __typename?: 'TokenCollection', name?: string | null, collectionAddress?: string | null, featureImage?: { __typename?: 'Asset', title?: string | null, url?: string | null } | null } | null> } | null, resourcesCollection?: { __typename?: 'HomePageResourcesCollection', items: Array<{ __typename?: 'ContentTypeResourceLink', title?: string | null, description?: string | null, href?: string | null, isExternal?: boolean | null, image?: { __typename?: 'Asset', title?: string | null, url?: string | null } | null } | null> } | null } | null };
 
 
 export const ContentfulHomePageDocument = gql`
@@ -914,11 +1191,24 @@ export const ContentfulHomePageDocument = gql`
     name
     featuredTokens
     notableTokens
+    notableCollections
     featuredCollectionsCollection {
       items {
         name
         collectionAddress
         featureImage {
+          title
+          url
+        }
+      }
+    }
+    resourcesCollection {
+      items {
+        title
+        description
+        href
+        isExternal
+        image {
           title
           url
         }

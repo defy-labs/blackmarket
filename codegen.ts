@@ -1,12 +1,12 @@
 import { CodegenConfig } from '@graphql-codegen/cli'
 
-const contentfulSpaceId = process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID || 'u9c8r3tap7y9'
+const contentfulSpaceId = process.env.NEXT_PUBLIC_CONTENTFUL_SPACE_ID
 
 const contentfulEnvironment =
-	process.env.NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT_ID || 'master'
+	process.env.NEXT_PUBLIC_CONTENTFUL_ENVIRONMENT_ID
 
 const contentfulAccessToken =
-	process.env.NEXT_PUBLIC_CONTENTFUL_ACCESS_TOKEN || 'Q3TKc-AXX6X7S72PeS1abvrPoUBgepusXdCNJnVoz-g'
+	process.env.NEXT_PUBLIC_CONTENTFUL_ACCESS_TOKEN
 
 const contentfulSchema =
 	`https://graphql.contentful.com/content/v1/spaces/${contentfulSpaceId}/environments/${contentfulEnvironment}` as string

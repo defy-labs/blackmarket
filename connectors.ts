@@ -97,6 +97,12 @@ function emailConnector({
         chains: chains,
         options: {
           apiKey: apiKey,
+          magicSdkConfiguration: {
+            network: {
+              rpcUrl: 'https://polygon-rpc.com',
+              chainId: 137,
+            },
+          },
           accentColor: theme.colors.brand[500],
           customHeaderText: 'DEFY App',
           customLogo: '/defy.jpg',

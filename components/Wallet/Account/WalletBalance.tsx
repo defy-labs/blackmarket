@@ -6,7 +6,7 @@ import Price from '../../Price/Price'
 const WalletBalance: FC<{
   account: string | undefined | null
   currency: {
-    id: string
+    id: string | undefined
     decimals: number
     symbol: string
   }

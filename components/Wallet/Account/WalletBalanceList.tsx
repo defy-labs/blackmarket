@@ -8,7 +8,7 @@ import WalletBalance from './WalletBalance'
 type IProps = {
   currencies: {
     name: string
-    id: string
+    id: string | undefined
     image: string
     decimals: number
     symbol: string
@@ -18,6 +18,13 @@ type IProps = {
 
 const WalletBalanceList: FC<IProps> = ({ account, currencies }) => {
   const { t } = useTranslation('components')
+  currencies = [{
+    name: "MATIC",
+    id: '137-',
+    decimals: 18,
+    symbol: "MATIC",
+    image: "https://etherscan.io/token/images/polygonmatic_new_32.png"
+  }, ...currencies]
   if (currencies.length === 0)
     return (
       <Text as="p" variant="text" color="gray.500">

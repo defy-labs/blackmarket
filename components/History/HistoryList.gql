@@ -14,6 +14,7 @@ query FetchAssetHistory(
     histories(
       orderBy: DATE_DESC
       first: 100 # TODO: implement pagination
+      filter: {fromAddress:{notEqualTo: "0x0000000000000000000000000000000000000000"}, toAddress:{notEqualTo:"0x0000000000000000000000000000000000000000"}}
     ) {
       nodes {
         action

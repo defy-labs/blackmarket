@@ -376,6 +376,18 @@ const Navbar: FC<{
     }
   }, [events, refetch])
 
+  useEffect(() => {
+    if (account) {
+      fetch('https://webapi.prod.defylabs.xyz/defhub/gasgrantclaim', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ walletAddress: account.address })
+      })
+    }
+  }, [account])
+
   const onSubmit = handleSubmit((data) => {
     if (data.search) query.search = data.search
     else delete query.search

@@ -378,7 +378,7 @@ const Navbar: FC<{
 
   useEffect(() => {
     if (account) {
-      fetch('https://webapi.prod.defylabs.xyz/defhub/gasgrantclaim', {
+      void fetch('https://webapi.prod.defylabs.xyz/defhub/gasgrantclaim', {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

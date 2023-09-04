@@ -48,15 +48,15 @@ const getDefaultWallets = ({
     {
       groupName: 'Popular',
       wallets: [
+        environment.MAGIC_API_KEY
+          ? emailConnector({ chains, apiKey: environment.MAGIC_API_KEY })
+          : undefined,
         injectedWallet({ chains, shimDisconnect }),
         rainbowWallet({ chains, projectId, shimDisconnect }),
         coinbaseWallet({ appName, chains }),
         metaMaskWallet({ chains, projectId, shimDisconnect }),
         walletConnectWallet({ chains, projectId }),
         braveWallet({ chains, shimDisconnect }),
-        environment.MAGIC_API_KEY
-          ? emailConnector({ chains, apiKey: environment.MAGIC_API_KEY })
-          : undefined,
       ].filter(Boolean),
     },
   ]

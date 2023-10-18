@@ -99,7 +99,7 @@ const environment = {
    */
 
   // Name of the company to place in the SEO title and in the footer
-  META_COMPANY_NAME: 'DEFY Labs Pte Ltd.',
+  META_COMPANY_NAME: 'Futures Systems ',
 
   // Title of the marketplace to place in the SEO title
   META_TITLE: 'DEFY Blackmarket',
